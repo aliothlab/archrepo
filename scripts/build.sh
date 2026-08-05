@@ -88,7 +88,8 @@ for dir in "$IN"/*/; do
 			b=${u##*#branch=}
 			b=${b%%[?&]*}
 		fi
-		tip=$(git ls-remote "${u%%\#*}" "$b" | cut -c1-7)
+		tip=$(git ls-remote "${u%%\#*}" "$b" | cut -c1-7) || true
+		[[ -n $tip ]] || echo "::warning::cannot resolve $u ($b)"
 		break
 	done
 
@@ -107,8 +108,8 @@ for dir in "$IN"/*/; do
 
 	echo "::group::$pkgbase"
 	if asb makepkg -sf --noconfirm; then
-		mapfile -t out < <(asb makepkg --packagelist)
-		built+=("${out[@]}")
+		mapfile -t pkgs < <(asb makepkg --packagelist)
+		built+=("${pkgs[@]}")
 	else
 		failed+=("$pkgbase")
 		echo "::error::build failed: $pkgbase"
