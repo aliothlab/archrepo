@@ -14,7 +14,8 @@ Packages and the database live in the `x86_64` release of this repository.
 Import and locally sign the key the packages are signed with:
 
 ```console
-# pacman-key --recv-keys <KEYID>
+$ curl -fsSLO https://raw.githubusercontent.com/aliothlab/archrepo/main/aliothlab.asc
+# pacman-key --add aliothlab.asc
 # pacman-key --lsign-key <KEYID>
 ```
 
@@ -53,9 +54,9 @@ regardless of version.
 | `GPG_PRIVATE_KEY` | `gpg --armor --export-secret-keys <KEYID>` |
 | `GPG_PASSPHRASE` | passphrase of that key, empty if it has none |
 
-Publish the public half so users can fetch it:
-`gpg --armor --export <KEYID>` to a keyserver, or commit it here and let users
-run `pacman-key --add`.
+Commit the public half as `aliothlab.asc` in the repository root:
+`gpg --armor --export <KEYID> > aliothlab.asc`. The uid of that key also
+becomes the `PACKAGER` field of every package; it needs no deliverable mailbox.
 
 ## Adding a package
 
