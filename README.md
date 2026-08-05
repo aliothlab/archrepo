@@ -15,9 +15,14 @@ Import and locally sign the key the packages are signed with:
 
 ```console
 $ curl -fsSLO https://raw.githubusercontent.com/aliothlab/archrepo/main/aliothlab.asc
+$ gpg --show-keys aliothlab.asc
 # pacman-key --add aliothlab.asc
-# pacman-key --lsign-key <KEYID>
+# pacman-key --lsign-key B4583DE83B85027DB16CC9F8F5AF33A86EB800A0
 ```
+
+`gpg --show-keys` must print the fingerprint
+`B458 3DE8 3B85 027D B16C  C9F8 F5AF 33A8 6EB8 00A0`; anything else means the
+file is not the key this repository is signed with.
 
 Append to `/etc/pacman.conf`:
 
@@ -54,8 +59,7 @@ regardless of version.
 | `GPG_PRIVATE_KEY` | `gpg --armor --export-secret-keys <KEYID>` |
 | `GPG_PASSPHRASE` | passphrase of that key, empty if it has none |
 
-Commit the public half as `aliothlab.asc` in the repository root:
-`gpg --armor --export <KEYID> > aliothlab.asc`. The uid of that key also
+The public half is `aliothlab.asc` in the repository root. That key's uid also
 becomes the `PACKAGER` field of every package; it needs no deliverable mailbox.
 
 ## Adding a package
