@@ -1,0 +1,55 @@
+pkgname=kdae-git
+_pkgname=dae
+_branch=kdae
+pkgver=lastst.r24.g77f6ce6
+pkgrel=1
+pkgdesc="dae (dev build): eBPF transparent proxy — olicesx kdae"
+arch=('x86_64')
+url="https://github.com/olicesx/dae"
+license=('AGPL-3.0-or-later')
+makedepends=('git' 'clang' 'go')
+provides=("${_pkgname}")
+conflicts=("${_pkgname}" 'dae-git')
+options=('!debug')
+source=(
+      "${_pkgname}::git+${url}.git#branch=${_branch}"
+      "git+https://github.com/daeuniverse/dae_bpf_headers.git"
+)
+sha256sums=('SKIP' 'SKIP')
+
+pkgver() {
+      cd "${_pkgname}"
+      local desc
+      if desc=$(git describe --long --tags --abbrev=7 2>/dev/null); then
+              printf '%s' "${desc}" | sed 's/\([^-]*-g\)/r\1/;s/-/./g;s/v//'
+      else
+              printf 'r%s.g%s' "$(git rev-list --count HEAD)" "$(git rev-parse --short=7 HEAD)"
+      fi
+}
+
+prepare() {
+      cd "${_pkgname}"
+      git submodule init
+      git config submodule.control/kern/headers.url "${srcdir}/dae_bpf_headers"
+      git config submodule.trace/kern/headers.url "${srcdir}/dae_bpf_headers"
+      git -c protocol.file.allow=always submodule update
+      export GOPATH="${srcdir}"
+      go mod download -modcacherw -x
+}
+
+build() {
+      cd "${_pkgname}"
+      export GOPATH="${srcdir}"
+      export GOTOOLCHAIN=local
+      export CFLAGS="-fno-stack-protector"   # eBPF objects only; CGO is disabled
+      make VERSION="unstable-${pkgver}" \
+              BUILD_ARGS="-buildmode=pie -trimpath -mod=readonly -modcacherw"
+}
+
+package() {
+      cd "${_pkgname}"
+      install -Dm755 "${_pkgname}" -t "${pkgdir}/usr/bin/"
+      install -Dm644 "install/${_pkgname}.service" -t "${pkgdir}/usr/lib/systemd/system/"
+      install -dm750 "${pkgdir}/etc/${_pkgname}"
+      install -d "${pkgdir}/usr/share/${_pkgname}"
+}

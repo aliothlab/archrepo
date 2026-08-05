@@ -1,0 +1,24 @@
+[Unit]
+Description=honk eBPF transparent proxy engine
+Documentation=https://github.com/Glassyiris/honk
+After=network-online.target systemd-sysctl.service
+Wants=network-online.target
+RequiresMountsFor=/sys/fs/bpf
+
+[Service]
+Type=notify
+ExecStart=/usr/bin/honk-core --config /etc/honk/config.dae
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=on-failure
+RestartSec=5s
+LimitNOFILE=1048576
+LimitNPROC=512
+# Runs as root: loading tc/sk_lookup programs, pinning maps under /sys/fs/bpf,
+# creating the daens netns + dae0 veth, installing policy routes and writing
+# kernel parameters all need full privileges.
+# /etc/honk holds the config and cache.db, so /etc must stay writable.
+ProtectSystem=full
+ProtectHome=true
+
+[Install]
+WantedBy=multi-user.target
