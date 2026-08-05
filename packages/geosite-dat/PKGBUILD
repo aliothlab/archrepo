@@ -1,0 +1,17 @@
+pkgname=geosite-dat
+pkgver=20260804
+pkgrel=1
+pkgdesc='geoip.dat / geosite.dat routing data for dae and honk, built from aliothlab/rule-set'
+arch=('any')
+url='https://github.com/aliothlab/rule-set'
+license=('LicenseRef-unknown')
+_base="https://raw.githubusercontent.com/aliothlab/rule-set/main/rules"
+source=("geosite-$pkgver.dat::$_base/geosite-cn.dat"
+        "geoip-$pkgver.dat::$_base/geoip-cn.dat")
+sha256sums=('4d03317e6cd227de8732e57eba5fc72f3e4902c2bdc9e3c7571d8e109b9ac8cb'
+            'c2d74c1297155671f6f7c80f4d0d1957e6e1ea542b66f625299266400b08cf9c')
+
+package() {
+  install -Dm644 "geosite-$pkgver.dat" "$pkgdir/usr/share/dae/geosite.dat"
+  install -Dm644 "geoip-$pkgver.dat" "$pkgdir/usr/share/dae/geoip.dat"
+}
