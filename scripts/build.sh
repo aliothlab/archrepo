@@ -49,6 +49,7 @@ PKGDEST=$OUT
 SRCDEST=/tmp/srcdest
 BUILDDIR=/tmp/build
 MAKEFLAGS="-j$(nproc)"
+OPTIONS+=(!debug)
 PACKAGER="$(gpgb --list-secret-keys --with-colons | awk -F: '/^uid:/{print $10; exit}')"
 EOF
 
@@ -127,7 +128,9 @@ for dir in "$IN"/*/; do
 	echo "::group::$pkgbase"
 	if asb makepkg -sf --noconfirm; then
 		mapfile -t pkgs < <(asb makepkg --packagelist)
-		built+=("${pkgs[@]}")
+		for f in "${pkgs[@]}"; do
+			if [[ -f $f ]]; then built+=("$f"); fi
+		done
 	else
 		failed+=("$pkgbase")
 		echo "::error::build failed: $pkgbase"

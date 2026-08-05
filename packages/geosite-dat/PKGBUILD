@@ -5,6 +5,7 @@ pkgdesc='geoip.dat / geosite.dat routing data for dae and honk, built from aliot
 arch=('any')
 url='https://github.com/aliothlab/rule-set'
 license=('LicenseRef-unknown')
+options=('!debug')
 _base="https://raw.githubusercontent.com/aliothlab/rule-set/main/rules"
 source=("geosite-$pkgver.dat::$_base/geosite-cn.dat"
         "geoip-$pkgver.dat::$_base/geoip-cn.dat")
