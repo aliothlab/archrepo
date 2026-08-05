@@ -1,7 +1,7 @@
 pkgname=kdae-git
 _pkgname=dae
 _branch=kdae
-pkgver=lastst.r24.g77f6ce6
+pkgver=lastst.r1.g2f58113
 pkgrel=1
 pkgdesc="dae (dev build): eBPF transparent proxy — olicesx kdae"
 arch=('x86_64')
