@@ -52,9 +52,9 @@ MAKEFLAGS="-j$(nproc)"
 PACKAGER="$(gpgb --list-secret-keys --with-colons | awk -F: '/^uid:/{print $10; exit}')"
 EOF
 
-asb install -dm700 /home/builder/.config/nvchecker
+install -dm700 -o builder -g builder /home/builder/.config/nvchecker
 printf '[keys]\ngithub = "%s"\n' "$GH_TOKEN" |
-	asb install -m600 /dev/stdin /home/builder/.config/nvchecker/keyfile.toml
+	install -m600 -o builder -g builder /dev/stdin /home/builder/.config/nvchecker/keyfile.toml
 
 # repo-add insists on a database archive extension; the release carries the
 # names pacman fetches.
