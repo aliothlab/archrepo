@@ -31,7 +31,7 @@ db_ver() {
 		awk -v n="$1" '{ b=$0; sub(/-[^-]+-[^-]+$/,"",b); if (b==n) { print substr($0,length(b)+2); exit } }'
 }
 
-pacman -Syu --noconfirm --needed devtools git nvchecker pacman-contrib
+pacman -Syu --noconfirm --needed git jq nvchecker pacman-contrib pyalpm
 
 useradd -m builder
 printf 'builder ALL=(ALL) NOPASSWD: ALL\n' >/etc/sudoers.d/builder
@@ -52,9 +52,13 @@ MAKEFLAGS="-j$(nproc)"
 PACKAGER="$(gpgb --list-secret-keys --with-colons | awk -F: '/^uid:/{print $10; exit}')"
 EOF
 
-install -dm700 -o builder -g builder /home/builder/.config/nvchecker
-printf '[keys]\ngithub = "%s"\n' "$GH_TOKEN" |
-	install -m600 -o builder -g builder /dev/stdin /home/builder/.config/nvchecker/keyfile.toml
+NVOPTS=()
+if [[ -n $GH_TOKEN ]]; then
+	install -dm700 -o builder -g builder /home/builder/.config/nvchecker
+	printf '[keys]\ngithub = "%s"\n' "$GH_TOKEN" |
+		install -m600 -o builder -g builder /dev/stdin /home/builder/.config/nvchecker/keyfile.toml
+	NVOPTS=(--keyfile /home/builder/.config/nvchecker/keyfile.toml)
+fi
 
 # repo-add insists on a database archive extension; the release carries the
 # names pacman fetches.
@@ -70,12 +74,26 @@ for dir in "$IN"/*/; do
 	pkgbase=${pkgbase##*/}
 	cd "$dir"
 
-	if [[ -f .nvchecker.toml ]]; then
-		asb pkgctl version upgrade || echo "::warning::version check failed: $pkgbase"
-	fi
-
 	unset -v pkgver pkgrel source
 	. ./PKGBUILD
+
+	# pkgctl drives nvchecker behind a spinner that needs a terminal, so run
+	# nvchecker the way pkgctl's get_upstream_version() does and skip the rest.
+	if [[ -f .nvchecker.toml ]]; then
+		new=$(asb env GIT_TERMINAL_PROMPT=0 nvchecker --file .nvchecker.toml \
+			--logger json "${NVOPTS[@]}" 2>&1 |
+			jq -r --arg n "$pkgbase" 'select(.level != "debug" and .name == $n and .version) | .version' |
+			head -1) || true
+		if [[ -z $new ]]; then
+			echo "::warning::version check failed: $pkgbase"
+		elif (($(vercmp "$new" "$pkgver") > 0)); then
+			echo "upstream: $pkgbase $pkgver -> $new"
+			asb sed -i "s/^pkgver=.*/pkgver=$new/;s/^pkgrel=.*/pkgrel=1/" PKGBUILD
+			asb updpkgsums
+			unset -v pkgver pkgrel source
+			. ./PKGBUILD
+		fi
+	fi
 
 	# VCS packages carry no upstream version, so compare the remote tip against
 	# the commit hash already encoded in the published pkgver.
