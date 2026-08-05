@@ -1,0 +1,69 @@
+name: build
+
+on:
+  schedule:
+    - cron: '0 21 * * *'
+  workflow_dispatch:
+    inputs:
+      force:
+        description: Rebuild even when versions are unchanged
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: repository
+
+env:
+  REPO: aliothlab
+  TAG: x86_64
+  GH_TOKEN: ${{ github.token }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Fetch published repository
+        run: |
+          mkdir -p out
+          gh release download "$TAG" --dir out --pattern '*' --clobber || true
+
+      - name: Build
+        env:
+          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+          FORCE: ${{ inputs.force || false }}
+        run: |
+          docker run --rm -v "$PWD:/build" \
+            -e REPO -e GH_TOKEN -e FORCE -e GPG_PRIVATE_KEY -e GPG_PASSPHRASE \
+            -e HOST_UID="$(id -u)" -e HOST_GID="$(id -g)" \
+            archlinux:base-devel /build/scripts/build.sh
+
+      - name: Publish
+        if: ${{ !cancelled() }}
+        run: |
+          [[ -f built.txt ]] || exit 0
+          gh release view "$TAG" >/dev/null 2>&1 ||
+            gh release create "$TAG" --title "$REPO (x86_64)" --notes "pacman repository, updated by CI."
+          cd out
+          files=("$REPO.db" "$REPO.db.sig" "$REPO.files" "$REPO.files.sig")
+          while read -r f; do files+=("$f" "$f.sig"); done <../built.txt
+          gh release upload "$TAG" "${files[@]}" --clobber
+          gh release view "$TAG" --json assets -q '.assets[].name' | while read -r a; do
+            [[ -e $a ]] || gh release delete-asset "$TAG" "$a" --yes
+          done
+
+      - name: Commit version bumps
+        if: ${{ !cancelled() }}
+        run: |
+          [[ -f built.txt ]] || exit 0
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add packages
+          git diff --cached --quiet ||
+            { git commit -m "chore: build $(sed 's/-[^-]*-[^-]*\.pkg\.tar\.zst$//' built.txt | tr '\n' ' ')" && git push; }

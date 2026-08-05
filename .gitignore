@@ -1,0 +1,6 @@
+out/
+built.txt
+*.pkg.tar.zst
+*.sig
+src/
+pkg/
