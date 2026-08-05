@@ -19,12 +19,9 @@ sha256sums=('SKIP' 'SKIP')
 
 pkgver() {
       cd "${_pkgname}"
-      local desc
-      if desc=$(git describe --long --tags --abbrev=7 2>/dev/null); then
-              printf '%s' "${desc}" | sed 's/\([^-]*-g\)/r\1/;s/-/./g;s/v//'
-      else
-              printf 'r%s.g%s' "$(git rev-list --count HEAD)" "$(git rev-parse --short=7 HEAD)"
-      fi
+      # 'lastst' is upstream's only tag and it moves, so git describe would reset
+      # the revision counter under us and break pkgver monotonicity.
+      printf 'r%s.g%s' "$(git rev-list --count HEAD)" "$(git rev-parse --short=7 HEAD)"
 }
 
 prepare() {
