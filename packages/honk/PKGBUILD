@@ -1,6 +1,6 @@
 pkgname=honk
 pkgver=0.0.1.beta.39.fix
-pkgrel=1
+pkgrel=2
 pkgdesc='eBPF transparent proxy engine: dae-style TC datapath with sing-box-style outbounds'
 arch=('x86_64')
 url='https://github.com/Glassyiris/honk'
@@ -14,7 +14,7 @@ options=('!lto' '!debug')
 source=("$pkgname-$pkgver.tar.gz::$url/archive/refs/tags/v$pkgver.tar.gz"
         'honk.service')
 sha256sums=('1bd06c7e8f34856b04e60891c5eec439c2b1aa1caa88fd74321cbabea1eb33c0'
-            'f6b3403f94d893056b94ea3ffc91bf442162400332a99655aee1e7b10670b66a')
+            '8281eb40b6fdfeebc551d5c9f59bf4ce303722a847a86b8a677e69ab8dff75c1')
 
 build() {
   cd "$pkgname-$pkgver"
