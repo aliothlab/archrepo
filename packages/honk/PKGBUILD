@@ -1,5 +1,5 @@
 pkgname=honk
-pkgver=0.0.1.beta.39
+pkgver=0.0.1.beta.39.fix
 pkgrel=1
 pkgdesc='eBPF transparent proxy engine: dae-style TC datapath with sing-box-style outbounds'
 arch=('x86_64')
@@ -13,7 +13,7 @@ backup=('etc/honk/config.dae')
 options=('!lto' '!debug')
 source=("$pkgname-$pkgver.tar.gz::$url/archive/refs/tags/v$pkgver.tar.gz"
         'honk.service')
-sha256sums=('90076f0b1b212a6069ab0f63ec539200d5c0ae3fe7fb4daa13dbbb8a32591453'
+sha256sums=('1bd06c7e8f34856b04e60891c5eec439c2b1aa1caa88fd74321cbabea1eb33c0'
             'f6b3403f94d893056b94ea3ffc91bf442162400332a99655aee1e7b10670b66a')
 
 build() {
