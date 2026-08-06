@@ -34,7 +34,13 @@ build() {
       cargo build --release --locked -Zbuild-std=core --target bpfel-unknown-none
     readelf -S target/bpfel-unknown-none/release/honk-ebpf | grep -q '\.BTF' )
 
-  cargo build --release --locked -p honk-core --features ebpf
+  # Upstream ships [profile.release] at opt-level = "s"; override it to 2 for
+  # the userspace engine only. Scoped to this one command on purpose: the
+  # honk-ebpf crate above is a separate workspace whose profile and rustflags
+  # are tuned against the kernel verifier's limits. lto/codegen-units/strip
+  # from the crate's own profile still apply.
+  CARGO_PROFILE_RELEASE_OPT_LEVEL=2 \
+    cargo build --release --locked -p honk-core --features ebpf
 }
 
 package() {
