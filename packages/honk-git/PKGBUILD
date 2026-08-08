@@ -1,0 +1,64 @@
+pkgname=honk-git
+_pkgname=honk
+pkgver=0.0.1.beta.41.r2.gbefad67
+pkgrel=1
+pkgdesc='eBPF transparent proxy engine: dae-style TC datapath with sing-box-style outbounds'
+arch=('x86_64')
+url='https://github.com/Glassyiris/honk'
+license=('GPL-3.0-only')
+depends=('glibc' 'gcc-libs')
+# rust-src for -Zbuild-std, bpf-linker for the kernel object,
+# cmake + clang for the vendored BoringSSL and bindgen.
+makedepends=('git' 'rust' 'rust-src' 'bpf-linker' 'cmake' 'clang')
+provides=('honk')
+conflicts=('honk')
+backup=('etc/honk/config.dae')
+options=('!lto' '!debug')
+source=("$_pkgname::git+$url.git"
+        'honk.service')
+sha256sums=('SKIP'
+            '8281eb40b6fdfeebc551d5c9f59bf4ce303722a847a86b8a677e69ab8dff75c1')
+
+pkgver() {
+  cd "$_pkgname"
+  git describe --long --tags 2>/dev/null | sed 's/^v//; s/\([^-]*-g\)/r\1/; s/-/./g' \
+    || printf "r%s.%s" "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)"
+}
+
+build() {
+  cd "$_pkgname"
+
+  # The eBPF crate pins the upstream dev-container linker path. Idempotent.
+  sed -i 's|/root/.cargo/bin/bpf-linker-wrapper|bpf-linker|' crates/honk-ebpf/.cargo/config.toml
+
+  # Kernel object first: honk-core's build.rs embeds it via include_bytes! and
+  # would otherwise shell out to `cargo +nightly` (rustup-only) to make it.
+  # bpfel-unknown-none is tier 3, so core must be built from rust-src, and
+  # RUSTC_BOOTSTRAP=1 is what unlocks that -Z flag on stable rustc. Clearing
+  # RUSTFLAGS is mandatory, not defensive: makepkg sets it under the debug
+  # option, and it replaces (not appends to) the crate's .cargo/config.toml
+  # rustflags, so the object would lose the .BTF section aya needs to load it.
+  ( cd crates/honk-ebpf
+    env -u RUSTFLAGS -u CARGO_ENCODED_RUSTFLAGS RUSTC_BOOTSTRAP=1 \
+      cargo build --release --locked -Zbuild-std=core --target bpfel-unknown-none
+    readelf -S target/bpfel-unknown-none/release/honk-ebpf | grep -q '\.BTF' )
+
+  # Upstream ships [profile.release] at opt-level = "s"; override it to 2 for
+  # the userspace engine only. Scoped to this one command on purpose: the
+  # honk-ebpf crate above is a separate workspace whose profile and rustflags
+  # are tuned against the kernel verifier's limits. lto/codegen-units/strip
+  # from the crate's own profile still apply.
+  CARGO_PROFILE_RELEASE_OPT_LEVEL=2 \
+    cargo build --release --locked -p honk-core --no-default-features --features clash-api,ebpf
+}
+
+package() {
+  cd "$_pkgname"
+  install -Dm755 target/release/honk-core "$pkgdir/usr/bin/honk-core"
+  # Ships as the default config; it carries credentials once edited.
+  install -Dm600 example.dae "$pkgdir/etc/honk/config.dae"
+  install -Dm644 "$srcdir/honk.service" "$pkgdir/usr/lib/systemd/system/honk.service"
+  install -Dm644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+  install -Dm644 -t "$pkgdir/usr/share/doc/$pkgname" \
+    README.md config.min.dae doc/configuration.en.md doc/components.en.md
+}
