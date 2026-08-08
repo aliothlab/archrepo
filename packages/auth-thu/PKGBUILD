@@ -8,8 +8,12 @@ url='https://github.com/z4yx/GoAuthing'
 license=('GPL-3.0-only')
 depends=('glibc')
 makedepends=('go')
-source=("$pkgname-$pkgver.tar.gz::$url/archive/refs/tags/v$pkgver.tar.gz")
-sha256sums=('bd05ebe3849eec1318f4a37e5042538a5c71b1ea3baad92e52a38967fc4fd650')
+source=("$pkgname-$pkgver.tar.gz::$url/archive/refs/tags/v$pkgver.tar.gz"
+        'goauthing.service'
+)
+sha256sums=('bd05ebe3849eec1318f4a37e5042538a5c71b1ea3baad92e52a38967fc4fd650'
+            '4e6b131dccc8c2b5956b7f00d4c7ed1eaaf8845817d3e7deaabaec6cd7c72895'
+)
 
 prepare() {
     cd "$_pkgname-$pkgver"
@@ -30,6 +34,5 @@ build() {
 package() {
     cd "$_pkgname-$pkgver"
     install -Dm755 "build/$pkgname" -t "$pkgdir/usr/bin"
-    install -Dm644 docs/systemd/user/*.service -t "$pkgdir/usr/lib/systemd/user"
-    install -Dm644 docs/systemd/system/*.service -t "$pkgdir/usr/lib/systemd/system"
+    install -Dm644 "$srcdir/goauthing.service" "$pkgdir/usr/lib/systemd/system/goauthing.service"
 }
