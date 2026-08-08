@@ -19,7 +19,6 @@ sha256sums=('1494a9fc912ee3d8cf7c7294ce5e48a8a71636c4bb5c006a03a9086db8ff0599'
             '8b4a8077e01f7eb16b5de451aba24fb0163f5ec5fe507bb6a717d645cab80b98')
 provides=("${_pkgname}")
 conflicts=("${_pkgname}")
-backup=("etc/${_pkgname}/config.json")
 
 build() {
     cd "${_pkgname}-${_pkgver}"
