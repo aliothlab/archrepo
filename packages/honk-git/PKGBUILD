@@ -12,7 +12,6 @@ depends=('glibc' 'gcc-libs')
 makedepends=('git' 'rust' 'rust-src' 'bpf-linker' 'cmake' 'clang')
 provides=('honk')
 conflicts=('honk')
-backup=('etc/honk/config.dae')
 options=('!lto' '!debug')
 source=("$_pkgname::git+$url.git"
         'honk.service')
