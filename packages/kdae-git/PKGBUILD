@@ -48,5 +48,4 @@ package() {
       install -Dm755 "${_pkgname}" -t "${pkgdir}/usr/bin/"
       install -Dm644 "install/${_pkgname}.service" -t "${pkgdir}/usr/lib/systemd/system/"
       install -dm750 "${pkgdir}/etc/${_pkgname}"
-      install -d "${pkgdir}/usr/share/${_pkgname}"
 }

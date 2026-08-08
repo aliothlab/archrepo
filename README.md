@@ -7,7 +7,7 @@ Packages and the database live in the `x86_64` release of this repository.
 | --- | --- |
 | `kdae-git` | [olicesx/dae](https://github.com/olicesx/dae), branch `kdae` |
 | `honk` | [Glassyiris/honk](https://github.com/Glassyiris/honk) |
-| `geosite-dat` | [aliothlab/rule-set](https://github.com/aliothlab/rule-set), installs `/usr/share/dae/{geosite,geoip}.dat` |
+| `rule-set-cn` | [aliothlab/rule-set](https://github.com/aliothlab/rule-set), installs `/usr/share/dae/{geosite,geoip}.dat` |
 
 ## Using the repository
 

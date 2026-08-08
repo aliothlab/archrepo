@@ -1,6 +1,0 @@
-[geosite-dat]
-source = "github"
-github = "aliothlab/rule-set"
-path = "rules"
-from_pattern = '^(\d{8})\.\d+$'
-to_pattern = '\1'

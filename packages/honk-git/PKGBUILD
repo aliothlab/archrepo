@@ -56,9 +56,9 @@ package() {
   cd "$_pkgname"
   install -Dm755 target/release/honk-core "$pkgdir/usr/bin/honk-core"
   # Ships as the default config; it carries credentials once edited.
-  install -Dm600 example.dae "$pkgdir/etc/honk/config.dae"
+  install -dm750 "${pkgdir}/etc/${_pkgname}"
   install -Dm644 "$srcdir/honk.service" "$pkgdir/usr/lib/systemd/system/honk.service"
-  install -Dm644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
-  install -Dm644 -t "$pkgdir/usr/share/doc/$pkgname" \
+  install -Dm644 LICENSE "$pkgdir/usr/share/licenses/${_pkgname}/LICENSE"
+  install -Dm644 -t "$pkgdir/usr/share/doc/${_pkgname}" \
     README.md config.min.dae doc/configuration.en.md doc/components.en.md
 }
