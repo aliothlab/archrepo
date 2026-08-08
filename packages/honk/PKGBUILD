@@ -9,7 +9,6 @@ depends=('glibc' 'gcc-libs')
 # rust-src for -Zbuild-std, bpf-linker for the kernel object,
 # cmake + clang for the vendored BoringSSL and bindgen.
 makedepends=('rust' 'rust-src' 'bpf-linker' 'cmake' 'clang')
-backup=('etc/honk/config.dae')
 options=('!lto' '!debug')
 source=("$pkgname-$pkgver.tar.gz::$url/archive/refs/tags/v$pkgver.tar.gz"
         'honk.service')
