@@ -1,6 +1,6 @@
 pkgname=rule-set-cn
 _repo=rule-set
-pkgver=20260809
+pkgver=20260810
 pkgrel=1
 pkgdesc='CN routing data: dat for dae/honk, srs for sing-box, plain CIDR for nftables'
 arch=('any')
@@ -9,7 +9,7 @@ license=('LicenseRef-unknown')
 options=('!debug')
 
 source=("$pkgname-$pkgver.tar.gz::$url/archive/refs/tags/$pkgver.tar.gz")
-sha256sums=('261cadb9bff63ab6861ddc4cb92819147d280ad92b503ed98d0a7c56b711c2e1')
+sha256sums=('b2a45358ef2f39bc6aa878303723351e03d8c184fc6282a895d860f19ea14ac2')
 
 package() {
     cd "$_repo-$pkgver/rules"
