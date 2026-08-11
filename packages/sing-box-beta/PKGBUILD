@@ -1,6 +1,6 @@
 pkgname=sing-box-beta
 _pkgname=sing-box
-pkgver=1.14.0beta.13
+pkgver=1.14.0beta.14
 _pkgver=$(echo "${pkgver}" | sed 's/\([0-9]\+\.[0-9]\+.[0-9]\+\)\(alpha\|beta\|rc\)/\1-\2/')
 pkgrel=1
 pkgdesc='The universal proxy platform (minimal build: tproxy + hysteria2/tuic)'
@@ -14,7 +14,7 @@ source=(
     "${_pkgname}.service"
     "${_pkgname}.tmpfiles"
 )
-sha256sums=('0cb121b9a8326aaf86f360a681a1f8f4ba3ed2f347c3a16617a1ec1e598b48ff'
+sha256sums=('8ebbfb6f8ec85387c9a80c3571ff4a464653b583bb2ad1eaa9eb89dc0f812e1f'
             '66c76234587818796426034a69aae90dac9d70e5095a293ebf1d36a6ccb051e5'
             '8b4a8077e01f7eb16b5de451aba24fb0163f5ec5fe507bb6a717d645cab80b98')
 provides=("${_pkgname}")
