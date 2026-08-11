@@ -58,6 +58,5 @@ package() {
   install -dm750 "${pkgdir}/etc/${_pkgname}"
   install -Dm644 "$srcdir/honk.service" "$pkgdir/usr/lib/systemd/system/honk.service"
   install -Dm644 LICENSE "$pkgdir/usr/share/licenses/${_pkgname}/LICENSE"
-  install -Dm644 -t "$pkgdir/usr/share/doc/${_pkgname}" \
-    README.md config.min.dae doc/configuration.en.md doc/components.en.md
+  (cd doc && find . -type f -exec install -Dm644 "{}" "$pkgdir/usr/share/doc/$pkgname/{}" \;)
 }
