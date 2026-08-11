@@ -1,5 +1,5 @@
 pkgname=honk
-pkgver=0.0.1.beta.47
+pkgver=0.0.1.beta.48
 pkgrel=1
 pkgdesc='eBPF transparent proxy engine: dae-style TC datapath with sing-box-style outbounds'
 arch=('x86_64')
@@ -12,7 +12,7 @@ makedepends=('rust' 'rust-src' 'bpf-linker' 'cmake' 'clang')
 options=('!lto' '!debug')
 source=("$pkgname-$pkgver.tar.gz::$url/archive/refs/tags/v$pkgver.tar.gz"
         'honk.service')
-sha256sums=('ecadeb4b6ff33ba4cccad3916554f509fa4e1b1472fca9b317f1601c537b44ec'
+sha256sums=('bf495d5b01721ebc09d02638aee0b35122b471d9695ed8ab341b59e31cf9c8e8'
             '8281eb40b6fdfeebc551d5c9f59bf4ce303722a847a86b8a677e69ab8dff75c1')
 
 build() {
