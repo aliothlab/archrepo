@@ -1,7 +1,7 @@
 [Unit]
 Description=sing-box service
 Documentation=https://sing-box.sagernet.org
-After=network.target network-online.target nss-lookup.target
+After=network.target network-online.target
 Wants=network-online.target
 StartLimitIntervalSec=300
 StartLimitBurst=3
@@ -15,13 +15,10 @@ ExecReload=/usr/bin/kill -HUP $MAINPID
 KillSignal=SIGTERM
 TimeoutStopSec=15
 
-# ── 能力(tproxy:CAP_NET_RAW 设 IP_TRANSPARENT;CAP_NET_BIND_SERVICE 绑<1024回包端口)──
 NoNewPrivileges=true
-CapabilityBoundingSet=
 CapabilityBoundingSet=CAP_NET_RAW CAP_NET_BIND_SERVICE
-AmbientCapabilities=
 AmbientCapabilities=CAP_NET_RAW CAP_NET_BIND_SERVICE
-# ── 文件系统 ──
+
 ProtectSystem=strict
 ProtectHome=true
 PrivateTmp=true
@@ -30,13 +27,10 @@ ProcSubset=pid
 StateDirectory=sing-box
 StateDirectoryMode=0700
 WorkingDirectory=/var/lib/sing-box
-ReadWritePaths=/var/lib/sing-box
 UMask=0077
-# ── 设备 ──
+
 PrivateDevices=true
-DevicePolicy=closed
-DeviceAllow=
-# ── 内核 / 系统防护 ──
+
 ProtectClock=true
 ProtectKernelLogs=true
 ProtectKernelModules=true
@@ -49,13 +43,12 @@ RestrictRealtime=true
 RestrictSUIDSGID=true
 RestrictNamespaces=true
 RemoveIPC=true
-# ── 网络地址族(AF_NETLINK 供接口监听/进程规则;不用 AF_UNIX)──
-RestrictAddressFamilies=AF_INET AF_INET6 AF_NETLINK
-# ── 系统调用过滤 ──
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6 AF_NETLINK
+
 SystemCallArchitectures=native
 SystemCallFilter=@system-service
-SystemCallFilter=~@resources @privileged @obsolete @keyring @memlock @setuid
-# ── 资源 / 重启 ──
+SystemCallFilter=~@resources @keyring @memlock @setuid
+
 LimitNOFILE=1048576
 TasksMax=1024
 MemoryHigh=384M
