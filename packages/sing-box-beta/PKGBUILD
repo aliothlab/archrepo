@@ -15,7 +15,7 @@ source=(
     "${_pkgname}.tmpfiles"
 )
 sha256sums=('8ebbfb6f8ec85387c9a80c3571ff4a464653b583bb2ad1eaa9eb89dc0f812e1f'
-            '66c76234587818796426034a69aae90dac9d70e5095a293ebf1d36a6ccb051e5'
+            'd5fadc6c41a1c48ad8c8e251369297ab263042ab1cb19c3fafcc9aaa1fc37239'
             '8b4a8077e01f7eb16b5de451aba24fb0163f5ec5fe507bb6a717d645cab80b98')
 provides=("${_pkgname}")
 conflicts=("${_pkgname}")
