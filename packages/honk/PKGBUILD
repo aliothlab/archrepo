@@ -1,6 +1,6 @@
 pkgname=honk
-pkgver=0.0.1.beta.50
-pkgrel=3
+pkgver=0.0.1.beta.50.fix
+pkgrel=1
 pkgdesc='eBPF transparent proxy engine: dae-style TC datapath with sing-box-style outbounds'
 arch=('x86_64')
 url='https://github.com/aliothlab/honk'
@@ -12,7 +12,7 @@ makedepends=('rust' 'rust-src' 'cmake' 'clang')
 options=('!lto' '!debug')
 source=("$pkgname-$pkgver.tar.gz::$url/archive/refs/tags/v$pkgver.tar.gz"
         'honk.service')
-sha256sums=('894ae6b56c71b470624e536069e59586749d54b0bcff8f5c62321251766ed67a'
+sha256sums=('bd22e2bac4e44e419808907bdb6511a2e34d17af3580bdd535dcf7f7cc03f6d0'
             '8281eb40b6fdfeebc551d5c9f59bf4ce303722a847a86b8a677e69ab8dff75c1')
 # bpf-linker 0.11.0 defaults to the llvm-23 feature; Arch still ships LLVM 22.
 _bpflinker=0.10.4
