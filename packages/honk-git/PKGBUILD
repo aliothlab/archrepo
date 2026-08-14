@@ -1,7 +1,7 @@
 pkgname=honk-git
 _pkgname=honk
 pkgver=0.0.1.beta.50.r0.ga2629c5
-pkgrel=2
+pkgrel=3
 pkgdesc='eBPF transparent proxy engine: dae-style TC datapath with sing-box-style outbounds'
 arch=('x86_64')
 url='https://github.com/Glassyiris/honk'
@@ -9,7 +9,7 @@ license=('GPL-3.0-only')
 depends=('glibc' 'gcc-libs')
 # rust-src for -Zbuild-std, bpf-linker for the kernel object,
 # cmake + clang for the vendored BoringSSL and bindgen.
-makedepends=('git' 'rust' 'rust-src' 'bpf-linker' 'cmake' 'clang')
+makedepends=('git' 'rust' 'rust-src' 'cmake' 'clang')
 provides=('honk')
 conflicts=('honk')
 options=('!lto' '!debug')
@@ -17,6 +17,9 @@ source=("$_pkgname::git+$url.git"
         'honk.service')
 sha256sums=('SKIP'
             '8281eb40b6fdfeebc551d5c9f59bf4ce303722a847a86b8a677e69ab8dff75c1')
+# bpf-linker 0.11.0 defaults to the llvm-23 feature; Arch still ships LLVM 22.
+source_x86_64=('https://github.com/aya-rs/bpf-linker/releases/download/v0.10.4/bpf-linker-x86_64-unknown-linux-musl.tar.zst')
+sha256sums_x86_64=('4dda77daab6c5f120a468e6d3ede2498f5bd47ece712172cfb7290176d93d015')
 
 pkgver() {
   cd "$_pkgname"
@@ -25,6 +28,7 @@ pkgver() {
 }
 
 build() {
+  export PATH="$srcdir:$PATH"
   cd "$_pkgname"
 
   # The eBPF crate pins the upstream dev-container linker path. Idempotent.
