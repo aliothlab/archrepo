@@ -38,8 +38,8 @@ build() {
   # honk-ebpf crate above is a separate workspace whose profile and rustflags
   # are tuned against the kernel verifier's limits. lto/codegen-units/strip
   # from the crate's own profile still apply.
-  CARGO_PROFILE_RELEASE_OPT_LEVEL=2 \
-    cargo build --release --locked -p honk-core --features ebpf
+  CARGO_PROFILE_RELEASE_OPT_LEVEL=2 cargo build --release --locked -p honk-core \
+      --no-default-features --features ebpf,mimalloc,clash-api
 }
 
 package() {
