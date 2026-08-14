@@ -4,11 +4,9 @@ pkgver=0.0.1.beta.50.r0.ga2629c5
 pkgrel=3
 pkgdesc='eBPF transparent proxy engine: dae-style TC datapath with sing-box-style outbounds'
 arch=('x86_64')
-url='https://github.com/Glassyiris/honk'
+url='https://github.com/daeuniverse/honk'
 license=('GPL-3.0-only')
 depends=('glibc' 'gcc-libs')
-# rust-src for -Zbuild-std, bpf-linker for the kernel object,
-# cmake + clang for the vendored BoringSSL and bindgen.
 makedepends=('git' 'rust' 'rust-src' 'cmake' 'clang')
 provides=('honk')
 conflicts=('honk')
@@ -34,23 +32,12 @@ build() {
   # The eBPF crate pins the upstream dev-container linker path. Idempotent.
   sed -i 's|/root/.cargo/bin/bpf-linker-wrapper|bpf-linker|' crates/honk-ebpf/.cargo/config.toml
 
-  # Kernel object first: honk-core's build.rs embeds it via include_bytes! and
-  # would otherwise shell out to `cargo +nightly` (rustup-only) to make it.
-  # bpfel-unknown-none is tier 3, so core must be built from rust-src, and
-  # RUSTC_BOOTSTRAP=1 is what unlocks that -Z flag on stable rustc. Clearing
-  # RUSTFLAGS is mandatory, not defensive: makepkg sets it under the debug
-  # option, and it replaces (not appends to) the crate's .cargo/config.toml
-  # rustflags, so the object would lose the .BTF section aya needs to load it.
   ( cd crates/honk-ebpf
     env -u RUSTFLAGS -u CARGO_ENCODED_RUSTFLAGS RUSTC_BOOTSTRAP=1 \
       cargo build --release --locked -Zbuild-std=core --target bpfel-unknown-none
     readelf -S target/bpfel-unknown-none/release/honk-ebpf | grep -q '\.BTF' )
 
-  # Upstream ships [profile.release] at opt-level = "s"; override it to 2 for
-  # the userspace engine only. Scoped to this one command on purpose: the
-  # honk-ebpf crate above is a separate workspace whose profile and rustflags
-  # are tuned against the kernel verifier's limits. lto/codegen-units/strip
-  # from the crate's own profile still apply.
+  # Upstream ships [profile.release] at opt-level = "s"; override it to 2.
   CARGO_PROFILE_RELEASE_OPT_LEVEL=2 cargo build --release --locked -p honk-core \
       --no-default-features --features ebpf,mimalloc,clash-api
 }
@@ -58,7 +45,6 @@ build() {
 package() {
   cd "$_pkgname"
   install -Dm755 target/release/honk-core "$pkgdir/usr/bin/honk-core"
-  # Ships as the default config; it carries credentials once edited.
   install -dm750 "${pkgdir}/etc/${_pkgname}"
   install -Dm644 "$srcdir/honk.service" "$pkgdir/usr/lib/systemd/system/honk.service"
   install -Dm644 LICENSE "$pkgdir/usr/share/licenses/${_pkgname}/LICENSE"
