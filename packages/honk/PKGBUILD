@@ -3,7 +3,7 @@ pkgver=0.0.1.beta.50
 pkgrel=3
 pkgdesc='eBPF transparent proxy engine: dae-style TC datapath with sing-box-style outbounds'
 arch=('x86_64')
-url='https://github.com/Glassyiris/honk'
+url='https://github.com/aliothlab/honk'
 license=('GPL-3.0-only')
 depends=('glibc' 'gcc-libs')
 # rust-src for -Zbuild-std, bpf-linker for the kernel object,
