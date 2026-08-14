@@ -8,8 +8,10 @@ url='https://github.com/aliothlab/rule-set'
 license=('LicenseRef-unknown')
 options=('!debug')
 
-source=("$pkgname-$pkgver.tar.gz::$url/archive/refs/tags/$pkgver.tar.gz")
-sha256sums=('b98ef6fabfdb565db5e6659fdbb24df1e6e25a028aff76830e0c19a4cfd36430')
+source=("$pkgname-$pkgver.tar.gz::$url/archive/refs/tags/$pkgver.tar.gz"
+        "$pkgname.hook")
+sha256sums=('b98ef6fabfdb565db5e6659fdbb24df1e6e25a028aff76830e0c19a4cfd36430'
+            'a99c29d7f4febffa4675ee257c7c040a9effefc7fa2b7bb44dd4c88b0c2a1bb9')
 
 package() {
     cd "$_repo-$pkgver/rules"
