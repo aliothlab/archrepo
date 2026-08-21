@@ -1,6 +1,6 @@
 pkgname=honk-git
 _pkgname=honk
-pkgver=0.0.1.beta.55.r4.gaf36ef0
+pkgver=0.0.1.beta.56.r1.g9559b81
 pkgrel=1
 pkgdesc='eBPF transparent proxy engine: dae-style TC datapath with sing-box-style outbounds'
 arch=('x86_64')
