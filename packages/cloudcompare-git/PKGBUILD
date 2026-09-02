@@ -24,27 +24,30 @@ arch=('x86_64')
 url='https://www.cloudcompare.org'
 license=(
   'BSD-2-Clause'      # nanoflann
+  'BSD-3-Clause'      # CRC++, vendored in libE57Format
   'BSL-1.0'           # dlib (qCanupo), libE57Format (qE57IO)
-  'GPL-2.0-only'      # qMPlane
-  'GPL-2.0-or-later'  # CloudCompare itself, dxflib
-  'GPL-3.0-or-later'  # qCSF, qJSonRPC, CGAL
+  'CC-BY-4.0'         # QDarkStyleSheet images
+  'GPL-2.0-only'      # qMPlane, qColorimetricSegmenter, qCompass, qPCV, qLASIO
+  'GPL-2.0-or-later'  # CloudCompare itself, dxflib, qCSF
+  'GPL-3.0-only'      # qVoxFall
+  'GPL-3.0-or-later'  # qJSonRPC, QCustomPlot, CGAL
   'LGPL-2.0-or-later' # CCCoreLib, shapelib
-  'MIT'               # CCCoreLib (parts), PoissonRecon, QDarkStyleSheet
+  'MIT'               # CCCoreLib (parts), PoissonRecon, QDarkStyleSheet, normals_Hough
   'Qhull'             # qHPR
 )
 depends=(
   'ffmpeg'         # qAnimation
-  'gcc-libs'       # libstdc++, libgomp (PoissonRecon OpenMP)
   'glibc'
   'gmp'            # linked in through CGAL::CGAL
   'hicolor-icon-theme'
   'laszip'         # qLASIO
-  'libglvnd'       # qPCV links libGL directly
-  'mpfr'           # linked in through CGAL::CGAL
+  'libgcc'
+  'libgomp'        # PoissonRecon OpenMP
+  'libstdc++'
   'onetbb'         # CCCORELIB_USE_TBB
   'opencv'         # q3DMASC
   'qt6-base'
-  'qt6-svg'
+  'qt6-svg'        # dlopened qsvg image plugin, no DT_NEEDED
   'qt6-websockets' # qJSonRPC
   'xerces-c'       # vendored libE57Format (qE57IO)
 )
@@ -53,10 +56,11 @@ makedepends=(
   'cmake'
   'eigen'     # CC_USE_EIGEN, qHoughNormals
   'git'
+  'libglvnd'  # find_package(OpenGL REQUIRED) in qPCV
   'ninja'
   'qt6-tools' # Qt6LinguistTools
 )
-provides=("cloudcompare=${pkgver%%.r*}")
+provides=("cloudcompare=$pkgver")
 conflicts=('cloudcompare')
 options=('!debug')
 source=("$_repo::git+https://github.com/CloudCompare/CloudCompare.git"
@@ -134,7 +138,7 @@ build() {
 
     # CCCoreLib
     -DCCCORELIB_SHARED=ON
-    -DCCCORELIB_USE_CGAL=ON               # gmp + mpfr: 2.5D Delaunay (meshing, rasterize, qFacets)
+    -DCCCORELIB_USE_CGAL=ON               # gmp: 2.5D Delaunay (meshing, rasterize, qFacets)
     -DCCCORELIB_USE_TBB=ON                # onetbb: parallel DgmOctree + DistanceComputationTools
 
     # GL plugins
@@ -157,7 +161,6 @@ build() {
     -DE57_ENABLE_DIAGNOSTIC_OUTPUT=OFF    # NodeImpl::dump(), never called from CloudCompare
     -DE57_GIT_SUBMODULE_UPDATE=OFF        # default ON: would git-fetch googletest while configuring
     -DE57_RELEASE_LTO=OFF                 # makepkg already applies -flto=auto
-    -DE57_USE_EXTERNAL_CRCPP=OFF
     -DE57_VALIDATION_LEVEL=1
     -DE57_VERBOSE=OFF
     -DE57_WRITE_CRAZY_PACKET_MODE=OFF
@@ -185,9 +188,9 @@ build() {
     # standard plugins - with a dependency
     -DPLUGIN_STANDARD_3DMASC=ON           # opencv (ML module)
     -DPLUGIN_STANDARD_QJSONRPC=ON         # qt6-websockets
-    -DPLUGIN_STANDARD_QPCV=ON             # libglvnd (links libGL directly)
+    -DPLUGIN_STANDARD_QPCV=ON             # libglvnd
     -DPLUGIN_STANDARD_QPOISSON_RECON=ON   # vendored PoissonRecon
-    -DPOISSON_RECON_WITH_OPEN_MP=ON       # libgomp, from gcc-libs
+    -DPOISSON_RECON_WITH_OPEN_MP=ON       # libgomp
 
     # qCanupo + vendored dlib (NO_GUI_SUPPORT/USE_CUDA are already FORCEd by qCanupo)
     -DPLUGIN_STANDARD_QCANUPO=ON
@@ -242,7 +245,7 @@ build() {
     -DPLUGIN_EXAMPLE_STANDARD=OFF
   )
 
-  cmake -B build -S "$_repo" "${_opts[@]}" -Wno-dev
+  cmake -B build -S "$_repo" "${_opts[@]}" -Wno-author
   cmake --build build
 }
 
@@ -262,7 +265,9 @@ package() {
   install -Dm644 "$_repo/$_cccorelib/extern/nanoflann/COPYING" "$_licdir/nanoflann.BSD"
   install -Dm644 "$_repo/libs/CCAppCommon/QDarkStyleSheet/LICENSE.rst" "$_licdir/QDarkStyleSheet.MIT"
   install -Dm644 "$_repo/plugins/core/IO/qE57IO/extern/libE57Format/LICENSE.md" "$_licdir/libE57Format.BSL-1.0"
+  install -Dm644 "$_repo/plugins/core/IO/qE57IO/extern/libE57Format/extern/CRCpp/LICENSE" "$_licdir/CRCpp.BSD-3-Clause"
   install -Dm644 "$_repo/plugins/core/Standard/qCanupo/contrib/dlib/LICENSE.txt" "$_licdir/dlib.BSL-1.0"
+  install -Dm644 "$_repo/plugins/core/Standard/qHoughNormals/extern/normals_Hough/normals_Hough/LICENSE" "$_licdir/normals_Hough.MIT"
   install -Dm644 "$_repo/plugins/core/Standard/qPoissonRecon/extern/PoissonRecon/LICENSE" "$_licdir/PoissonRecon.MIT"
   install -Dm644 "$_repo/plugins/core/Standard/qHPR/extern/qhull/qhull/COPYING.txt" "$_licdir/qhull.Qhull"
 }
