@@ -21,39 +21,46 @@ pkgdesc='System for processing and editing 3D triangular meshes (git version)'
 arch=('x86_64')
 url='https://www.meshlab.net'
 license=(
-  'BSD-2-Clause'     # EasyExif
-  'BSL-1.0'          # libE57Format
-  'GPL-2.0-or-later' # levmar, lib3ds
-  'GPL-3.0-or-later' # MeshLab, VCGlib, StructureSynth, nexus
-  'MIT'              # tinygltf, corto
-  'MPL-2.0'          # libigl
-  'Zlib'             # OpenCTM
+  'BSD-2-Clause'                  # EasyExif
+  'BSD-3-Clause'                  # PoissonRecon, CRC++
+  'BSL-1.0'                       # libE57Format
+  'CC0-1.0'                       # Hedley, inside tinygltf's json.hpp
+  'GPL-2.0-or-later'              # MeshLab, VCGlib, levmar, nexus, render_radiance_scaling
+  'GPL-3.0-or-later'              # filter_texture_defragmentation
+  'LGPL-2.1-only OR GPL-3.0-only' # StructureSynth
+  'LGPL-2.1-or-later'             # lib3ds
+  'LGPL-3.0-or-later'             # corto headers, contradicting its MIT LICENSE.txt
+  'MIT'                           # tinygltf, nlohmann/json, corto, newuoa
+  'MPL-2.0'                       # libigl, CubicStylization
+  'Unlicense'                     # miniz, inside filter_sketchfab
+  'Zlib'                          # OpenCTM
 )
 depends=(
-  'boost-libs' # Boost::thread
   'embree'     # filter_embree
-  'gcc-libs'   # libstdc++, libgomp (OpenMP)
   'glew'
   'glibc'
   'glu'        # OpenGL::GLU, used by ~10 plugins
   'gmp'        # linked in through CGAL::CGAL
   'hicolor-icon-theme'
+  'libgcc'
   'libglvnd'
+  'libgomp'    # OpenMP
+  'libstdc++'
   'mpfr'       # linked in through CGAL::CGAL
   'muparser'   # filter_func
-  'onetbb'     # required by embree
   'qhull'      # filter_qhull
   'qt5-base'   # master still has no Qt6 build path
   'xerces-c'   # libE57Format
 )
 makedepends=(
-  'boost' # headers
-  'cgal'  # header-only
+  'boost'      # headers
+  'boost-libs' # Boost::thread is on the link line, --as-needed drops it
+  'cgal'       # header-only
   'cmake'
   'git'
   'ninja'
 )
-provides=("meshlab=${pkgver%%.r*}")
+provides=("meshlab=$pkgver")
 conflicts=('meshlab')
 options=('!debug')
 source=("$_repo::git+https://github.com/cnr-isti-vclab/meshlab.git"
@@ -167,18 +174,22 @@ build() {
     -DMESHLAB_ALLOW_DOWNLOAD_SOURCE_U3D=OFF       # io_u3d: runtime .so lookup assumes the AppImage layout
   )
 
-  cmake -B build -S "$_repo" "${_opts[@]}" -Wno-dev
+  cmake -B build -S "$_repo" "${_opts[@]}" -Wno-author
   cmake --build build
 }
 
 package() {
   DESTDIR="$pkgdir" cmake --install build
 
+  # Fully linked into io_e57; !staticlibs keeps it for lack of a sibling .so.
+  rm "$pkgdir/usr/lib/meshlab/libE57Format.a"
+
   # Bundled code linked into the binaries, not covered by licenses/common.
   local _licdir="$pkgdir/usr/share/licenses/$pkgname" _dl="$_repo/src/external/downloads"
   install -Dm644 "$_repo/src/external/easyexif-1.0/LICENSE" "$_licdir/EasyExif.BSD-2-Clause"
   install -Dm644 "$_dl/OpenCTM-1.0.3/LICENSE.txt" "$_licdir/OpenCTM.Zlib"
   install -Dm644 "$_dl/libE57Format-3.1.1/LICENSE.md" "$_licdir/libE57Format.BSL-1.0"
+  install -Dm644 "$_dl/libE57Format-3.1.1/extern/CRCpp/LICENSE" "$_licdir/CRCpp.BSD-3-Clause"
   install -Dm644 "$_dl/libigl-2.6.0/LICENSE.MPL2" "$_licdir/libigl.MPL-2.0"
   install -Dm644 "$_dl/nexus-2025.05/src/corto/LICENSE.txt" "$_licdir/corto.MIT"
   install -Dm644 "$_dl/tinygltf-2.6.3/LICENSE" "$_licdir/tinygltf.MIT"
