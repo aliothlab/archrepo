@@ -177,7 +177,6 @@ build() {
     -DPLUGIN_STANDARD_QHOUGH_NORMALS=ON   # vendored normals_Hough + nanoflann
     -DPLUGIN_STANDARD_QHPR=ON             # vendored qhull
     -DPLUGIN_STANDARD_QM3C2=ON
-    -DPLUGIN_STANDARD_QRANSAC_SD=ON       # vendored RANSAC_SD + GfxTL + MiscLib
     -DPLUGIN_STANDARD_QSRA=ON
     -DPLUGIN_STANDARD_QVOXFALL=ON
     -DPLUGIN_STANDARD_QMPLANE=ON
@@ -235,6 +234,7 @@ build() {
     -DPLUGIN_STANDARD_QCORK=OFF           # mesh CSG          (cork + MPIR)
     -DPLUGIN_STANDARD_QMESH_BOOLEAN=OFF   # mesh CSG          (libigl + CGAL Core)
     -DPLUGIN_STANDARD_QPCL=OFF            # PCL wrapper       (pcl, not in the Arch repos)
+    -DPLUGIN_STANDARD_QRANSAC_SD=OFF      # shape detection   (vendored RANSAC_SD, research use only)
 
     # example plugins
     -DPLUGIN_EXAMPLE_GL=OFF
