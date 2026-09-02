@@ -1,7 +1,7 @@
 pkgname=auth-thu
 _pkgname=GoAuthing
 pkgver=2.4.0
-pkgrel=1
+pkgrel=2
 pkgdesc='Commandline Tunet (auth4/6.tsinghua.edu.cn) authentication tool'
 arch=('x86_64')
 url='https://github.com/z4yx/GoAuthing'
@@ -18,8 +18,8 @@ sha256sums=('bd05ebe3849eec1318f4a37e5042538a5c71b1ea3baad92e52a38967fc4fd650'
 
 prepare() {
     cd "$_pkgname-$pkgver"
-    mkdir -p build
-    sed -i 's|/usr/local/bin/auth-thu|/usr/bin/auth-thu|g' docs/systemd/*/*.service
+    export GOPATH="$srcdir"
+    go mod download -modcacherw
 }
 
 build() {
@@ -28,8 +28,14 @@ build() {
     export CGO_CFLAGS="$CFLAGS"
     export CGO_CXXFLAGS="$CXXFLAGS"
     export CGO_LDFLAGS="$LDFLAGS"
+    export GOPATH="$srcdir"
     export GOFLAGS="-buildmode=pie -trimpath -ldflags=-linkmode=external -mod=readonly -modcacherw"
     go build -o "build/$pkgname" ./cli
+}
+
+check() {
+    cd "$_pkgname-$pkgver"
+    go test ./...
 }
 
 package() {
