@@ -41,6 +41,10 @@ fi
 
 asb makepkg --syncdeps --force --noconfirm
 
+# pkgrel counts rebuilds of one pkgver; pkgver() has run by now, so VCS is covered too.
+[[ $(. ./PKGBUILD; printf '%s' "$pkgver") == "$cur" ]] ||
+	asb sed -i 's/^pkgrel=.*/pkgrel=1/' PKGBUILD
+
 mapfile -t pkgs < <(asb makepkg --packagelist)
 for f in "${pkgs[@]}"; do
 	[[ -f $f ]] || continue
