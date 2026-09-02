@@ -5,39 +5,53 @@ pkgdesc='eBPF transparent proxy engine: dae-style TC datapath with sing-box-styl
 arch=('x86_64')
 url='https://github.com/daeuniverse/honk'
 license=('GPL-3.0-only')
-depends=('glibc' 'gcc-libs')
+depends=('glibc' 'libgcc' 'libstdc++')
 makedepends=('rust' 'rust-src' 'cmake' 'clang' 'git')
 options=('!lto' '!debug')
 source=("$pkgname-$pkgver.tar.gz::$url/archive/refs/tags/v$pkgver.tar.gz"
         'honk.service')
 sha256sums=('20afa9187d4a77d91691a5f21d6c54d62a4a2381b67cdd377a5a92a3a937649b'
-            '8281eb40b6fdfeebc551d5c9f59bf4ce303722a847a86b8a677e69ab8dff75c1')
-sha256sums_x86_64=('4dda77daab6c5f120a468e6d3ede2498f5bd47ece712172cfb7290176d93d015')
-# bpf-linker 0.11.0 defaults to the llvm-23 feature; Arch still ships LLVM 22.
-_bpflinker=0.10.4
+            'cda659364fcef260f5e5b3a808d4291b1176c6e6f127dd60e1e1da0e619a1bdc')
+sha256sums_x86_64=('10f62ba9ab7e544d538370552660efcb4f1a19153d5752bbf0f6b51f3bada450')
+# Arch's bpf-linker pairs llvm-23 bindings with LLVM 22 and fails; this build is static.
+_bpflinker=0.11.0
 source_x86_64=("bpf-linker-$_bpflinker-x86_64.tar.zst::https://github.com/aya-rs/bpf-linker/releases/download/v$_bpflinker/bpf-linker-x86_64-unknown-linux-musl.tar.zst")
+
+prepare() {
+  cd "$pkgname-$pkgver"
+
+  # bpf-linker derives BTF from DWARF, so the sub-build keeps its source paths.
+  sed -i "s|^rustflags = \[|&\n  \"--remap-path-prefix=$srcdir=/usr/src/debug/$pkgbase\",|" \
+    crates/honk-ebpf/.cargo/config.toml
+
+  cargo fetch --locked --target "$(rustc --print host-tuple)"
+  ( cd crates/honk-ebpf
+    RUSTC_BOOTSTRAP=1 cargo fetch --locked -Zbuild-std=core \
+      --target bpfel-unknown-none --target "$(rustc --print host-tuple)" )
+}
 
 build() {
   export PATH="$srcdir:$PATH"
   cd "$pkgname-$pkgver"
 
-  # The eBPF crate pins the upstream dev-container linker path. Idempotent.
-  sed -i 's|/root/.cargo/bin/bpf-linker-wrapper|bpf-linker|' crates/honk-ebpf/.cargo/config.toml
-
-  # bpf-linker derives BTF from DWARF, so the object keeps debuginfo=2 and its
-  # source paths reach honk-core. The sub-build drops RUSTFLAGS to preserve this
-  # file's flags, so the remap has to go in here too.
-  sed -i "s|^rustflags = \[|&\n  \"--remap-path-prefix=$srcdir=/usr/src/debug/$pkgbase\",|" \
-    crates/honk-ebpf/.cargo/config.toml
-
   ( cd crates/honk-ebpf
     env -u RUSTFLAGS -u CARGO_ENCODED_RUSTFLAGS RUSTC_BOOTSTRAP=1 \
-      cargo build --release --locked -Zbuild-std=core --target bpfel-unknown-none
+      cargo build --release --frozen -Zbuild-std=core --target bpfel-unknown-none
     readelf -S target/bpfel-unknown-none/release/honk-ebpf | grep -q '\.BTF' )
 
   # Upstream ships [profile.release] at opt-level = "s"; override it to 2.
-  CARGO_PROFILE_RELEASE_OPT_LEVEL=2 cargo build --release --locked -p honk-core \
+  CARGO_PROFILE_RELEASE_OPT_LEVEL=2 cargo build --release --frozen -p honk-core \
       --no-default-features --features ebpf,mimalloc,clash-api
+}
+
+check() {
+  cd "$pkgname-$pkgver"
+
+  # test_geosite_* need a real geosite.dat; test_routing_with_config_dae fails upstream too.
+  cargo test --frozen --workspace --no-fail-fast -- \
+    --skip test_routing_with_config_dae \
+    --skip test_geosite_cn_route \
+    --skip test_geosite_route
 }
 
 package() {

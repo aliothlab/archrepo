@@ -1,6 +1,6 @@
 [Unit]
 Description=honk eBPF transparent proxy engine
-Documentation=https://github.com/Glassyiris/honk
+Documentation=https://github.com/daeuniverse/honk
 After=network-online.target systemd-sysctl.service
 Wants=network-online.target
 RequiresMountsFor=/sys/fs/bpf
@@ -10,7 +10,7 @@ StartLimitBurst=3
 [Service]
 Type=notify
 ExecStart=/usr/bin/honk-core --config /etc/honk/config.dae
-ExecReload=/bin/kill -HUP $MAINPID
+ExecReload=/usr/bin/kill -HUP $MAINPID
 
 # cache.db + external UI live here; also the CWD so a relative
 # experimental.clash_api.external_ui lands in a writable place.

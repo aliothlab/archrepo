@@ -7,7 +7,7 @@ Packages and the database live in the `x86_64` release of this repository.
 | --- | --- |
 | `auth-thu` | [z4yx/GoAuthing](https://github.com/z4yx/GoAuthing) |
 | `cloudcompare-git` | [CloudCompare/CloudCompare](https://github.com/CloudCompare/CloudCompare) |
-| `honk` | [Glassyiris/honk](https://github.com/Glassyiris/honk) |
+| `honk` | [daeuniverse/honk](https://github.com/daeuniverse/honk) |
 | `meshlab-git` | [cnr-isti-vclab/meshlab](https://github.com/cnr-isti-vclab/meshlab) |
 | `sing-box-beta` | [SagerNet/sing-box](https://github.com/SagerNet/sing-box) |
 
