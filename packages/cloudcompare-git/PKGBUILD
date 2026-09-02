@@ -24,7 +24,7 @@ arch=('x86_64')
 url='https://www.cloudcompare.org'
 license=(
   'BSD-2-Clause'      # nanoflann
-  'BSD-3-Clause'      # CRC++, vendored in libE57Format
+  'BSD-3-Clause'      # CRC++ (libE57Format), PoissonRecon
   'BSL-1.0'           # dlib (qCanupo), libE57Format (qE57IO)
   'CC-BY-4.0'         # QDarkStyleSheet images
   'GPL-2.0-only'      # qMPlane, qColorimetricSegmenter, qCompass, qPCV, qLASIO
@@ -32,7 +32,9 @@ license=(
   'GPL-3.0-only'      # qVoxFall
   'GPL-3.0-or-later'  # qJSonRPC, QCustomPlot, CGAL
   'LGPL-2.0-or-later' # CCCoreLib, shapelib
-  'MIT'               # CCCoreLib (parts), PoissonRecon, QDarkStyleSheet, normals_Hough
+  # PoissonRecon vendors Stanford's PLY reader: distribution is granted, selling is not.
+  'LicenseRef-Stanford-PLY'
+  'MIT'               # CCCoreLib (parts), QDarkStyleSheet, normals_Hough
   'Qhull'             # qHPR
 )
 depends=(
@@ -268,6 +270,10 @@ package() {
   install -Dm644 "$_repo/plugins/core/IO/qE57IO/extern/libE57Format/extern/CRCpp/LICENSE" "$_licdir/CRCpp.BSD-3-Clause"
   install -Dm644 "$_repo/plugins/core/Standard/qCanupo/contrib/dlib/LICENSE.txt" "$_licdir/dlib.BSL-1.0"
   install -Dm644 "$_repo/plugins/core/Standard/qHoughNormals/extern/normals_Hough/normals_Hough/LICENSE" "$_licdir/normals_Hough.MIT"
-  install -Dm644 "$_repo/plugins/core/Standard/qPoissonRecon/extern/PoissonRecon/LICENSE" "$_licdir/PoissonRecon.MIT"
+  local _pr="$_repo/plugins/core/Standard/qPoissonRecon/extern/PoissonRecon/Src"
+  sed -n '/^Copyright (c) 2006/,/^DAMAGE\.$/p' "$_pr/Allocator.h" \
+    > "$_licdir/PoissonRecon.BSD-3-Clause"
+  sed -n '/^Copyright (c) 1994/,/PARTICULAR PURPOSE/p' "$_pr/PlyFile.h" \
+    > "$_licdir/PoissonRecon-PLY.Stanford"
   install -Dm644 "$_repo/plugins/core/Standard/qHPR/extern/qhull/qhull/COPYING.txt" "$_licdir/qhull.Qhull"
 }
