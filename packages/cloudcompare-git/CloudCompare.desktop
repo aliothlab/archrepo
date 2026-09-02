@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=CloudCompare
+GenericName=Point Cloud Processing
+Comment=3D point cloud and triangular mesh processing software
+Exec=CloudCompare %F
+Icon=CloudCompare
+StartupWMClass=CloudCompare
+Terminal=false
+Categories=Graphics;3DGraphics;Science;
+Keywords=point cloud;LiDAR;mesh;registration;scan;E57;LAS;

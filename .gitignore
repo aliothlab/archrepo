@@ -1,0 +1,6 @@
+out/
+srcdest/
+*.pkg.tar.zst
+*.sig
+src/
+pkg/

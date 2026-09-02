@@ -1,0 +1,6 @@
+[auth-thu]
+source = "github"
+github = "z4yx/GoAuthing"
+use_max_tag = true
+prefix = "v"
+sort_version_key = "vercmp"

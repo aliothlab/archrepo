@@ -1,0 +1,25 @@
+pkgname=rule-set-cn
+_repo=rule-set
+pkgver=20260901
+pkgrel=1
+pkgdesc='CN routing data: dat for dae/honk, srs for sing-box, plain CIDR for nftables'
+arch=('any')
+url='https://github.com/aliothlab/rule-set'
+license=('LicenseRef-unknown')
+
+source=("$pkgname-$pkgver.tar.gz::$url/archive/refs/tags/$pkgver.tar.gz"
+        "$pkgname.hook")
+sha256sums=('5a827634ef918965881c4343a5e94671920cb0aa0540ff7a08bc47268becb76e'
+            'a99c29d7f4febffa4675ee257c7c040a9effefc7fa2b7bb44dd4c88b0c2a1bb9')
+
+package() {
+    cd "$_repo-$pkgver/rules"
+
+    install -Dm644 geoip-cn.dat   "$pkgdir/usr/share/dae/geoip.dat"
+    install -Dm644 geosite-cn.dat "$pkgdir/usr/share/dae/geosite.dat"
+
+    install -Dm644 geoip-cn.srs geosite-cn.srs geosite-cndns.srs \
+        -t "$pkgdir/usr/share/sing-box/rule-set"
+
+    install -Dm644 cn-v4.txt cn-v6.txt -t "$pkgdir/usr/share/rule-set-cn"
+}

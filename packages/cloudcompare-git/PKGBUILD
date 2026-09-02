@@ -1,0 +1,268 @@
+_repo=CloudCompare
+_cccorelib=libs/qCC_db/extern/CCCoreLib
+
+# submodule path in the CloudCompare tree :: name of the matching source entry
+_submodules=(
+  "$_cccorelib::CCCoreLib"
+  'libs/CCAppCommon/QDarkStyleSheet::QDarkStyleSheet'
+  'plugins/core/IO/MeshIO::MeshIO' # plugin off, but IO/CMakeLists.txt:1 adds it unconditionally
+  'plugins/core/IO/qE57IO/extern/libE57Format::libE57Format'
+  'plugins/core/Standard/q3DMASC::q3DMASC'
+  'plugins/core/Standard/qCanupo/contrib/dlib::dlib'
+  'plugins/core/Standard/qColorimetricSegmenter::qColorimetricSegmenter'
+  'plugins/core/Standard/qJSonRPCPlugin::qJSonRPCPlugin'
+  'plugins/core/Standard/qMPlane::mplane-plugin'
+  'plugins/core/Standard/qPoissonRecon/extern/PoissonRecon::PoissonRecon'
+  'plugins/core/Standard/qVoxFall::qVoxFall'
+)
+
+pkgname=cloudcompare-git
+pkgver=2.13.1.r437.gfe5a018
+pkgrel=1
+pkgdesc='3D point cloud and triangular mesh processing software (Qt 6, git version)'
+arch=('x86_64')
+url='https://www.cloudcompare.org'
+license=(
+  'BSD-2-Clause'      # nanoflann
+  'BSL-1.0'           # dlib (qCanupo), libE57Format (qE57IO)
+  'GPL-2.0-only'      # qMPlane
+  'GPL-2.0-or-later'  # CloudCompare itself, dxflib
+  'GPL-3.0-or-later'  # qCSF, qJSonRPC, CGAL
+  'LGPL-2.0-or-later' # CCCoreLib, shapelib
+  'MIT'               # CCCoreLib (parts), PoissonRecon, QDarkStyleSheet
+  'Qhull'             # qHPR
+)
+depends=(
+  'ffmpeg'         # qAnimation
+  'gcc-libs'       # libstdc++, libgomp (PoissonRecon OpenMP)
+  'glibc'
+  'gmp'            # linked in through CGAL::CGAL
+  'hicolor-icon-theme'
+  'laszip'         # qLASIO
+  'libglvnd'       # qPCV links libGL directly
+  'mpfr'           # linked in through CGAL::CGAL
+  'onetbb'         # CCCORELIB_USE_TBB
+  'opencv'         # q3DMASC
+  'qt6-base'
+  'qt6-svg'
+  'qt6-websockets' # qJSonRPC
+  'xerces-c'       # vendored libE57Format (qE57IO)
+)
+makedepends=(
+  'cgal'      # header-only
+  'cmake'
+  'eigen'     # CC_USE_EIGEN, qHoughNormals
+  'git'
+  'ninja'
+  'qt6-tools' # Qt6LinguistTools
+)
+provides=("cloudcompare=${pkgver%%.r*}")
+conflicts=('cloudcompare')
+options=('!debug')
+source=("$_repo::git+https://github.com/CloudCompare/CloudCompare.git"
+        'CCCoreLib::git+https://github.com/CloudCompare/CCCoreLib.git'
+        'nanoflann::git+https://github.com/jlblancoc/nanoflann.git'
+        'QDarkStyleSheet::git+https://github.com/ColinDuquesnoy/QDarkStyleSheet.git'
+        'MeshIO::git+https://github.com/CloudCompare/MeshIO.git'
+        'libE57Format::git+https://github.com/asmaloney/libE57Format.git'
+        'q3DMASC::git+https://github.com/dgirardeau/q3DMASC.git'
+        'dlib::git+https://github.com/davisking/dlib.git'
+        'qColorimetricSegmenter::git+https://github.com/CloudCompare/qColorimetricSegmenter.git'
+        'qJSonRPCPlugin::git+https://github.com/CloudCompare/qJSonRPCPlugin.git'
+        'mplane-plugin::git+https://github.com/hvs-ait/mplane-plugin.git'
+        'PoissonRecon::git+https://github.com/cloudcompare/PoissonRecon.git'
+        'qVoxFall::git+https://github.com/farmakis/qVoxFall.git'
+        CloudCompare.desktop)
+sha256sums=('SKIP'
+            'SKIP'
+            'SKIP'
+            'SKIP'
+            'SKIP'
+            'SKIP'
+            'SKIP'
+            'SKIP'
+            'SKIP'
+            'SKIP'
+            'SKIP'
+            'SKIP'
+            'SKIP'
+            'a57c4c88d3ad1e248332e4cf951fc33a12c9f1774a008272b1deb5f8e4c1ec93')
+
+pkgver() {
+  git -C "$_repo" describe --long --tags --abbrev=7 | sed 's/^v//;s/\([^-]*-g\)/r\1/;s/-/./g'
+}
+
+prepare() {
+  # Point every submodule at the local clone so build() never touches the network.
+  local sub
+  for sub in "${_submodules[@]}"; do
+    git -C "$_repo" submodule set-url -- "${sub%%::*}" "$srcdir/${sub##*::}"
+  done
+  git -C "$_repo" -c protocol.file.allow=always submodule update --init --force \
+    "${_submodules[@]%%::*}"
+
+  # nanoflann lives in CCCoreLib's own .gitmodules
+  git -C "$_repo/$_cccorelib" submodule set-url -- extern/nanoflann "$srcdir/nanoflann"
+  git -C "$_repo/$_cccorelib" -c protocol.file.allow=always submodule update --init --force \
+    extern/nanoflann
+
+  # Request desktop GL explicitly: Qt's EGL config chooser falls back to OpenGL ES
+  # when the vendor is NVIDIA and the format asks for DefaultRenderableType, and
+  # CloudCompare then aborts with "needs OpenGL 2.1 at least" (qCC/main.cpp:194).
+  sed -i 's/^\(\s*\)format\.setStencilBufferSize(0);/&\n\1format.setRenderableType(QSurfaceFormat::OpenGL);/' \
+    "$_repo/libs/CCAppCommon/src/ccApplicationBase.cpp"
+}
+
+build() {
+  # -DNDEBUG: CMAKE_BUILD_TYPE=None does not define it, so assert() would stay live.
+  # Do not set BUILD_SHARED_LIBS: libE57Format keys its static/shared choice off it.
+  local _opts=(
+    -DCMAKE_BUILD_TYPE=None
+    -DCMAKE_C_FLAGS="$CFLAGS -DNDEBUG"
+    -DCMAKE_CXX_FLAGS="$CXXFLAGS -DNDEBUG"
+    -DCMAKE_INSTALL_PREFIX=/usr
+    -DCMAKE_INSTALL_LIBDIR=lib
+    -GNinja
+
+    ############################## ENABLED ##############################
+
+    # core libraries
+    -DCC_USE_EIGEN=ON                     # Umeyama solver in "Align (point pairs picking)"
+    -DEIGEN_ROOT_DIR=/usr/include/eigen3
+    -DOPTION_USE_DXF_LIB=ON               # DXF r/w, vendored dxflib
+    -DOPTION_USE_SHAPE_LIB=ON             # SHP r/w, vendored shapelib; also qFacets export
+
+    # CCCoreLib
+    -DCCCORELIB_SHARED=ON
+    -DCCCORELIB_USE_CGAL=ON               # gmp + mpfr: 2.5D Delaunay (meshing, rasterize, qFacets)
+    -DCCCORELIB_USE_TBB=ON                # onetbb: parallel DgmOctree + DistanceComputationTools
+
+    # GL plugins
+    -DPLUGIN_GL_QEDL=ON
+    -DPLUGIN_GL_QSSAO=ON
+
+    # I/O plugins - no external dependency
+    -DPLUGIN_IO_QADDITIONAL=ON
+    -DPLUGIN_IO_QCORE=ON
+    -DPLUGIN_IO_QCSV_MATRIX=ON
+
+    # qLASIO
+    -DPLUGIN_IO_QLAS=ON                   # laszip
+    -DLASZIP_INCLUDE_DIR=/usr/include/laszip
+
+    # qE57IO + its vendored libE57Format
+    -DPLUGIN_IO_QE57=ON                   # xerces-c
+    -DE57_BUILD_SHARED=OFF
+    -DE57_BUILD_TEST=OFF
+    -DE57_ENABLE_DIAGNOSTIC_OUTPUT=OFF    # NodeImpl::dump(), never called from CloudCompare
+    -DE57_GIT_SUBMODULE_UPDATE=OFF        # default ON: would git-fetch googletest while configuring
+    -DE57_RELEASE_LTO=OFF                 # makepkg already applies -flto=auto
+    -DE57_USE_EXTERNAL_CRCPP=OFF
+    -DE57_VALIDATION_LEVEL=1
+    -DE57_VERBOSE=OFF
+    -DE57_WRITE_CRAZY_PACKET_MODE=OFF
+    -DE57FORMAT_SANITIZE_ADDRESS=OFF
+    -DE57FORMAT_SANITIZE_ALL=OFF
+    -DE57FORMAT_SANITIZE_UNDEFINED=OFF
+    -DE57FORMAT_WARNING_AS_ERROR=OFF
+    -DE57FORMAT_WARN_EVERYTHING=OFF
+
+    # standard plugins - no external dependency
+    -DPLUGIN_STANDARD_QBROOM=ON
+    -DPLUGIN_STANDARD_QCLOUDLAYERS=ON
+    -DPLUGIN_STANDARD_QCOLORIMETRIC_SEGMENTER=ON
+    -DPLUGIN_STANDARD_QCOMPASS=ON
+    -DPLUGIN_STANDARD_QCSF=ON
+    -DPLUGIN_STANDARD_QFACETS=ON
+    -DPLUGIN_STANDARD_QHOUGH_NORMALS=ON   # vendored normals_Hough + nanoflann
+    -DPLUGIN_STANDARD_QHPR=ON             # vendored qhull
+    -DPLUGIN_STANDARD_QM3C2=ON
+    -DPLUGIN_STANDARD_QRANSAC_SD=ON       # vendored RANSAC_SD + GfxTL + MiscLib
+    -DPLUGIN_STANDARD_QSRA=ON
+    -DPLUGIN_STANDARD_QVOXFALL=ON
+    -DPLUGIN_STANDARD_QMPLANE=ON
+    -DCOMPILE_QMPLANE_PLUGIN_TESTS=OFF
+
+    # standard plugins - with a dependency
+    -DPLUGIN_STANDARD_3DMASC=ON           # opencv (ML module)
+    -DPLUGIN_STANDARD_QJSONRPC=ON         # qt6-websockets
+    -DPLUGIN_STANDARD_QPCV=ON             # libglvnd (links libGL directly)
+    -DPLUGIN_STANDARD_QPOISSON_RECON=ON   # vendored PoissonRecon
+    -DPOISSON_RECON_WITH_OPEN_MP=ON       # libgomp, from gcc-libs
+
+    # qCanupo + vendored dlib (NO_GUI_SUPPORT/USE_CUDA are already FORCEd by qCanupo)
+    -DPLUGIN_STANDARD_QCANUPO=ON
+    -DQCANUPO_COMPILE_PRIVATE_METHODS=OFF
+    -DDLIB_ENABLE_ASSERTS=OFF
+    -DDLIB_ENABLE_STACK_TRACE=OFF
+    -DDLIB_GIF_SUPPORT=OFF
+    -DDLIB_ISO_CPP_ONLY=OFF
+    -DDLIB_JPEG_SUPPORT=OFF
+    -DDLIB_JXL_SUPPORT=OFF
+    -DDLIB_LINK_WITH_SQLITE3=OFF
+    -DDLIB_PNG_SUPPORT=OFF
+    -DDLIB_USE_BLAS=OFF
+    -DDLIB_USE_FFMPEG=OFF                 # default ON, and opencv drags ffmpeg into the chroot
+    -DDLIB_USE_LAPACK=OFF
+    -DDLIB_USE_MKL_FFT=OFF
+    -DDLIB_USE_MKL_SEQUENTIAL=OFF
+    -DDLIB_USE_MKL_WITH_TBB=OFF
+    -DDLIB_WEBP_SUPPORT=OFF
+
+    # qAnimation
+    -DPLUGIN_STANDARD_QANIMATION=ON
+    -DQANIMATION_WITH_FFMPEG_SUPPORT=ON   # ffmpeg: renders video instead of a PNG sequence
+
+    ############################## DISABLED #############################
+
+    # core
+    -DBUILD_TESTING=OFF
+    -DOPTION_BUILD_CCVIEWER=OFF
+    -DOPTION_SUPPORT_3DMOUSE_WITH_HIDAPI=OFF  # would vendor-build extern/hidapi
+    -DOPTION_USE_GDAL=OFF                     # drops raster DEM import, GeoTIFF export, GDAL contours
+    -DCCCORELIB_USE_QT_CONCURRENT=OFF         # CCCoreLib forces this off anyway when USE_TBB is on
+
+    # I/O plugins
+    -DPLUGIN_IO_QDRACO=OFF                # .drc              (draco)
+    -DPLUGIN_IO_QPHOTOSCAN=OFF            # Metashape .psz    (zlib)
+    -DPLUGIN_IO_QFBX=OFF                  # .fbx              (FBX SDK, non-redistributable)
+    -DPLUGIN_IO_QRDB=OFF                  # Riegl .rdbx       (Riegl closed SDK)
+    -DPLUGIN_IO_QSTEP=OFF                 # STEP CAD          (opencascade)
+    -DPLUGIN-3rdParty_MESH_IO=OFF         # glTF/COLLADA/IFC  (assimp)
+    -DPLUGIN_IO_QPDAL=OFF                 # deprecated upstream, superseded by qLASIO
+
+    # standard plugins
+    -DPLUGIN_STANDARD_QCORK=OFF           # mesh CSG          (cork + MPIR)
+    -DPLUGIN_STANDARD_QMESH_BOOLEAN=OFF   # mesh CSG          (libigl + CGAL Core)
+    -DPLUGIN_STANDARD_QPCL=OFF            # PCL wrapper       (pcl, not in the Arch repos)
+
+    # example plugins
+    -DPLUGIN_EXAMPLE_GL=OFF
+    -DPLUGIN_EXAMPLE_IO=OFF
+    -DPLUGIN_EXAMPLE_STANDARD=OFF
+  )
+
+  cmake -B build -S "$_repo" "${_opts[@]}" -Wno-dev
+  cmake --build build
+}
+
+package() {
+  DESTDIR="$pkgdir" cmake --install build
+
+  # Upstream ships no Linux icon/.desktop. Basename must match the Wayland app_id /
+  # X11 WM_CLASS, i.e. QCoreApplication::applicationName() == "CloudCompare".
+  install -Dm644 "$_repo/qCC/images/icon/cc_icon.svg" \
+    "$pkgdir/usr/share/icons/hicolor/scalable/apps/CloudCompare.svg"
+  install -Dm644 CloudCompare.desktop -t "$pkgdir/usr/share/applications/"
+
+  # Vendored code linked into the binaries, not covered by licenses/common.
+  local _licdir="$pkgdir/usr/share/licenses/$pkgname"
+  install -Dm644 "$_repo/license.txt" "$_licdir/LICENSE"
+  install -Dm644 "$_repo/$_cccorelib/LICENSE-MIT.txt" "$_licdir/CCCoreLib.MIT"
+  install -Dm644 "$_repo/$_cccorelib/extern/nanoflann/COPYING" "$_licdir/nanoflann.BSD"
+  install -Dm644 "$_repo/libs/CCAppCommon/QDarkStyleSheet/LICENSE.rst" "$_licdir/QDarkStyleSheet.MIT"
+  install -Dm644 "$_repo/plugins/core/IO/qE57IO/extern/libE57Format/LICENSE.md" "$_licdir/libE57Format.BSL-1.0"
+  install -Dm644 "$_repo/plugins/core/Standard/qCanupo/contrib/dlib/LICENSE.txt" "$_licdir/dlib.BSL-1.0"
+  install -Dm644 "$_repo/plugins/core/Standard/qPoissonRecon/extern/PoissonRecon/LICENSE" "$_licdir/PoissonRecon.MIT"
+  install -Dm644 "$_repo/plugins/core/Standard/qHPR/extern/qhull/qhull/COPYING.txt" "$_licdir/qhull.Qhull"
+}

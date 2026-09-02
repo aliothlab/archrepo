@@ -1,0 +1,15 @@
+[Unit]
+Description=Authenticating utility for auth.tsinghua.edu.cn
+StartLimitIntervalSec=0
+
+[Service]
+DynamicUser=yes
+LoadCredentialEncrypted=config:/etc/auth-thu/goauthing.cred
+ExecStartPre=-/usr/bin/auth-thu -c ${CREDENTIALS_DIRECTORY}/config -D deauth
+ExecStartPre=-/usr/bin/auth-thu -c ${CREDENTIALS_DIRECTORY}/config -D auth
+ExecStart=/usr/bin/auth-thu -c ${CREDENTIALS_DIRECTORY}/config online
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy = multi-user.target

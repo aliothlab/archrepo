@@ -1,0 +1,100 @@
+name: build
+
+on:
+  schedule:
+    - cron: '0 21 * * *'
+  workflow_dispatch:
+    inputs:
+      packages:
+        description: Space-separated pkgbases, empty for everything out of date
+        type: string
+      force:
+        description: Rebuild even when versions are unchanged
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: repository
+
+env:
+  REPO: aliothlab
+  TAG: x86_64
+  GH_TOKEN: ${{ github.token }}
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    container: archlinux:base-devel
+    outputs:
+      packages: ${{ steps.plan.outputs.packages }}
+    steps:
+      - run: |
+          pacman -Syu --noconfirm --needed git github-cli jq nvchecker pyalpm
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+      - uses: actions/checkout@v7
+      - run: gh release download "$TAG" --dir out --pattern "$REPO.db" || true
+      - id: plan
+        run: scripts/plan.sh
+        env:
+          FORCE: ${{ inputs.force }}
+          ONLY: ${{ inputs.packages }}
+
+  build:
+    needs: plan
+    if: needs.plan.outputs.packages != '[]'
+    name: build (${{ matrix.package.pkgbase }})
+    runs-on: ubuntu-latest
+    container: archlinux:base-devel
+    timeout-minutes: 350
+    strategy:
+      fail-fast: false
+      matrix:
+        package: ${{ fromJSON(needs.plan.outputs.packages) }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/cache@v6
+        with:
+          path: srcdest
+          key: srcdest-${{ matrix.package.pkgbase }}-${{ github.run_id }}
+          restore-keys: srcdest-${{ matrix.package.pkgbase }}-
+      - run: scripts/build-one.sh '${{ matrix.package.pkgbase }}' '${{ matrix.package.pkgver }}'
+      - uses: actions/upload-artifact@v7
+        with:
+          name: build-${{ matrix.package.pkgbase }}
+          if-no-files-found: error
+          retention-days: 1
+          path: |
+            out/*.pkg.tar.zst
+            packages/${{ matrix.package.pkgbase }}/PKGBUILD
+
+  publish:
+    needs: [plan, build]
+    if: ${{ !cancelled() && needs.plan.result == 'success' && needs.plan.outputs.packages != '[]' }}
+    runs-on: ubuntu-latest
+    container: archlinux:base-devel
+    steps:
+      - run: |
+          pacman -Syu --noconfirm --needed git github-cli
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+      - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: build-*
+          merge-multiple: true
+      - run: gh release download "$TAG" --dir out --pattern "$REPO.db" --pattern "$REPO.files" || true
+      - run: scripts/publish.sh
+        env:
+          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+      - name: Commit version bumps
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add packages
+          git diff --cached --quiet || {
+            git commit -m "chore: bump $(git diff --cached --name-only | cut -d/ -f2 | sort -u | paste -sd' ')"
+            git push
+          }

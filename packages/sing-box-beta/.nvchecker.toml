@@ -1,0 +1,6 @@
+[sing-box-beta]
+source = "git"
+git = "https://github.com/SagerNet/sing-box.git"
+include_regex = 'v\d+\.\d+\.\d+(-(alpha|beta|rc)\.\d+)?'
+from_pattern = '^v|-'
+to_pattern = ''

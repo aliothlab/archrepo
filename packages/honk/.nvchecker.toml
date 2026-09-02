@@ -1,0 +1,6 @@
+[honk]
+source = "github"
+github = "Glassyiris/honk"
+use_max_tag = true
+prefix = "v"
+sort_version_key = "vercmp"

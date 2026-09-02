@@ -1,0 +1,3 @@
+# /etc/sing-box: 0750 root:sing-box, configs 0640 root:sing-box
+d /etc/sing-box            0750 root sing-box -
+z /etc/sing-box/*.json     0640 root sing-box -
