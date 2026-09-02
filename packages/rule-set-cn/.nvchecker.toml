@@ -1,4 +1,0 @@
-[rule-set-cn]
-source = "git"
-git = "https://github.com/aliothlab/rule-set.git"
-include_regex = '\d{8}'

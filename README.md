@@ -9,7 +9,6 @@ Packages and the database live in the `x86_64` release of this repository.
 | `cloudcompare-git` | [CloudCompare/CloudCompare](https://github.com/CloudCompare/CloudCompare) |
 | `honk` | [Glassyiris/honk](https://github.com/Glassyiris/honk) |
 | `meshlab-git` | [cnr-isti-vclab/meshlab](https://github.com/cnr-isti-vclab/meshlab) |
-| `rule-set-cn` | [aliothlab/rule-set](https://github.com/aliothlab/rule-set) |
 | `sing-box-beta` | [SagerNet/sing-box](https://github.com/SagerNet/sing-box) |
 
 ## Using the repository
