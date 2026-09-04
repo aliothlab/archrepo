@@ -17,7 +17,7 @@ _submodules=(
 )
 
 pkgname=cloudcompare-git
-pkgver=2.13.1.r437.gfe5a018
+pkgver=2.13.1.r439.gfc89fa0
 pkgrel=1
 pkgdesc='3D point cloud and triangular mesh processing software (Qt 6, git version)'
 arch=('x86_64')
