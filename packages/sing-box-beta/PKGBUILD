@@ -1,6 +1,6 @@
 pkgname=sing-box-beta
 _pkgname=sing-box
-pkgver=1.15.0alpha.1
+pkgver=1.15.0alpha.2
 _pkgver=$(echo "${pkgver}" | sed 's/\([0-9]\+\.[0-9]\+.[0-9]\+\)\(alpha\|beta\|rc\)/\1-\2/')
 pkgrel=1
 pkgdesc='The universal proxy platform'
@@ -15,7 +15,7 @@ source=(
     "${_pkgname}.service"
     "${_pkgname}.tmpfiles"
 )
-sha256sums=('18ce715936db59dee730c0da3d8323331ba647fb17aa89108ddd1de90b6ca71b'
+sha256sums=('76f322be1e86b689dfdb12be9d27314e7a329dca03b134222c7454900321f8be'
             'badc614e9b6918a977277529a7ef888af8c1c4b753c106ee4e7e289babadbea2'
             '8b4a8077e01f7eb16b5de451aba24fb0163f5ec5fe507bb6a717d645cab80b98')
 provides=("${_pkgname}=${pkgver}")
