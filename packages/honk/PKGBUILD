@@ -5,7 +5,6 @@ pkgdesc='eBPF transparent proxy engine: dae-style TC datapath with sing-box-styl
 arch=('x86_64')
 url='https://github.com/daeuniverse/honk'
 license=('GPL-3.0-only')
-depends=('glibc' 'libgcc' 'libstdc++')
 makedepends=('rust' 'rust-src' 'cmake' 'clang' 'git')
 options=('!lto' '!debug')
 source=("$pkgname-$pkgver.tar.gz::$url/archive/refs/tags/v$pkgver.tar.gz"
