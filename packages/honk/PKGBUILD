@@ -1,5 +1,5 @@
 pkgname=honk
-pkgver=0.0.1.beta.74
+pkgver=0.0.1.beta.75
 pkgrel=1
 pkgdesc='eBPF transparent proxy engine: dae-style TC datapath with sing-box-style outbounds'
 arch=('x86_64')
@@ -10,7 +10,7 @@ makedepends=('rust' 'rust-src' 'cmake' 'clang' 'git')
 options=('!lto' '!debug')
 source=("$pkgname-$pkgver.tar.gz::$url/archive/refs/tags/v$pkgver.tar.gz"
         'honk.service')
-sha256sums=('811861ff6ffe7074c113062e8c7d0615eabdaa961a6ebdedacda1b459e373b88'
+sha256sums=('951a9b800489466d5c6013352faa88c842de07d52514c58050276437080d6e74'
             'cda659364fcef260f5e5b3a808d4291b1176c6e6f127dd60e1e1da0e619a1bdc')
 sha256sums_x86_64=('10f62ba9ab7e544d538370552660efcb4f1a19153d5752bbf0f6b51f3bada450')
 # Arch's bpf-linker pairs llvm-23 bindings with LLVM 22 and fails; this build is static.
