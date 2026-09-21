@@ -19,11 +19,11 @@ Import and locally sign the key the packages are signed with:
 $ curl -fsSLO https://raw.githubusercontent.com/aliothlab/archrepo/main/aliothlab.asc
 $ gpg --show-keys aliothlab.asc
 # pacman-key --add aliothlab.asc
-# pacman-key --lsign-key B4583DE83B85027DB16CC9F8F5AF33A86EB800A0
+# pacman-key --lsign-key 0FC1E77540A02BB591E69F9244BF3E4450EC588A
 ```
 
 `gpg --show-keys` must print the fingerprint
-`B458 3DE8 3B85 027D B16C  C9F8 F5AF 33A8 6EB8 00A0`; anything else means the
+`0FC1 E775 40A0 2BB5 91E6 9F92 44BF 3E44 50EC 588A`; anything else means the
 file is not the key this repository is signed with.
 
 Append to `/etc/pacman.conf`:
