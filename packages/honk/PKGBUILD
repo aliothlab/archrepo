@@ -37,7 +37,11 @@ build() {
   ( cd crates/honk-ebpf
     env -u RUSTFLAGS -u CARGO_ENCODED_RUSTFLAGS RUSTC_BOOTSTRAP=1 \
       cargo build --release --frozen -Zbuild-std=core --target bpfel-unknown-none
-    readelf -S target/bpfel-unknown-none/release/honk-ebpf | grep -q '\.BTF' )
+    readelf -S target/bpfel-unknown-none/release/honk-ebpf | grep -q '\.BTF'
+    # honk-core's build.rs only reuses the object when this sidecar matches the pinned channel;
+    # otherwise it runs `cargo +<channel>`, which needs rustup.
+    sed -n 's/^channel *= *"\(.*\)"/\1/p' rust-toolchain.toml \
+      | tr -d '\n' > target/bpfel-unknown-none/release/honk-ebpf.toolchain )
 
   # Upstream ships [profile.release] at opt-level = "s"; override it to 2.
   CARGO_PROFILE_RELEASE_OPT_LEVEL=2 cargo build --release --frozen -p honk-core \
