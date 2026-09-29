@@ -95,7 +95,8 @@ sha256sums=('SKIP'
             'a57c4c88d3ad1e248332e4cf951fc33a12c9f1774a008272b1deb5f8e4c1ec93')
 
 pkgver() {
-  git -C "$_repo" describe --long --tags --abbrev=7 | sed 's/^v//;s/\([^-]*-g\)/r\1/;s/-/./g'
+  git -C "$_repo" describe --long --tags --abbrev=7 --match 'v[0-9]*' \
+    | sed 's/^v//;s/\([^-]*-g\)/r\1/;s/-/./g'
 }
 
 prepare() {
