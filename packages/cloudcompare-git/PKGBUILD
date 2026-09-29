@@ -96,7 +96,10 @@ sha256sums=('SKIP'
 
 pkgver() {
   cd "$_repo"
-  printf "%s.r%s.%s" "$(git describe --tags --abbrev=0 --match 'v[0-9]*' | sed 's/^v//')" "$(git rev-list --count HEAD)" "$(git rev-parse --short=7 HEAD)"
+  printf "%s.r%s.g%s" \
+    "$(git describe --tags --abbrev=0 --match 'v[0-9]*' | sed 's/^v//')" \
+    "$(git rev-list --count HEAD)" \
+    "$(git rev-parse --short=7 HEAD)"
 }
 
 prepare() {
