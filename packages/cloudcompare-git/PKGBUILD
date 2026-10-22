@@ -5,6 +5,7 @@ _cccorelib=libs/qCC_db/extern/CCCoreLib
 _submodules=(
   "$_cccorelib::CCCoreLib"
   'libs/CCAppCommon/QDarkStyleSheet::QDarkStyleSheet'
+  'libs/qPCP::qPCP'
   'plugins/core/IO/MeshIO::MeshIO' # plugin off, but IO/CMakeLists.txt:1 adds it unconditionally
   'plugins/core/IO/qE57IO/extern/libE57Format::libE57Format'
   'plugins/core/Standard/q3DMASC::q3DMASC'
@@ -69,6 +70,7 @@ source=("$_repo::git+https://github.com/CloudCompare/CloudCompare.git"
         'CCCoreLib::git+https://github.com/CloudCompare/CCCoreLib.git'
         'nanoflann::git+https://github.com/jlblancoc/nanoflann.git'
         'QDarkStyleSheet::git+https://github.com/ColinDuquesnoy/QDarkStyleSheet.git'
+        'qPCP::git+https://github.com/farmakis/qPCP.git'
         'MeshIO::git+https://github.com/CloudCompare/MeshIO.git'
         'libE57Format::git+https://github.com/asmaloney/libE57Format.git'
         'q3DMASC::git+https://github.com/dgirardeau/q3DMASC.git'
@@ -80,6 +82,7 @@ source=("$_repo::git+https://github.com/CloudCompare/CloudCompare.git"
         'qVoxFall::git+https://github.com/farmakis/qVoxFall.git'
         CloudCompare.desktop)
 sha256sums=('SKIP'
+            'SKIP'
             'SKIP'
             'SKIP'
             'SKIP'
