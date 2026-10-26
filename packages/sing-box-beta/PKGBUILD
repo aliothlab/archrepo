@@ -14,10 +14,12 @@ source=(
     "${_pkgname}-${_pkgver}.tar.gz::https://github.com/SagerNet/sing-box/archive/v${_pkgver}.tar.gz"
     "${_pkgname}.service"
     "${_pkgname}.tmpfiles"
+    "${_pkgname}.sysusers"
 )
 sha256sums=('bf241b0e072b88c5fe19aaecfd19c7678254a07e8f67e9ff24586828821c46e2'
             'ed70898b516eff7a545666fa0efc2e02c0a34baaf94493e1dc6f416eb11b7164'
-            '8b4a8077e01f7eb16b5de451aba24fb0163f5ec5fe507bb6a717d645cab80b98')
+            '8b4a8077e01f7eb16b5de451aba24fb0163f5ec5fe507bb6a717d645cab80b98'
+            '0d0631619b6f680b9a80b9a8f65c7a30f2565e80279182f63c77854051c5d473')
 provides=("${_pkgname}=${pkgver}")
 conflicts=("${_pkgname}")
 
@@ -54,7 +56,7 @@ package() {
     install -Dm644 LICENSE -t "${pkgdir}/usr/share/licenses/${pkgname}"
     install -Dm755 "${_pkgname}" -t "${pkgdir}/usr/bin"
 
-    install -Dm644 release/config/"${_pkgname}".sysusers "${pkgdir}/usr/lib/sysusers.d/${_pkgname}.conf"
+    install -Dm644 "${srcdir}/${_pkgname}.sysusers" "${pkgdir}/usr/lib/sysusers.d/${_pkgname}.conf"
     install -Dm644 "${srcdir}/${_pkgname}.tmpfiles" "${pkgdir}/usr/lib/tmpfiles.d/${_pkgname}.conf"
     install -Dm644 "${srcdir}/${_pkgname}.service" "${pkgdir}/usr/lib/systemd/system/${_pkgname}.service"
 
