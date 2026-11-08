@@ -121,6 +121,10 @@ prepare() {
   # CloudCompare then aborts with "needs OpenGL 2.1 at least" (qCC/main.cpp:194).
   sed -i 's/^\(\s*\)format\.setStencilBufferSize(0);/&\n\1format.setRenderableType(QSurfaceFormat::OpenGL);/' \
     "$_repo/libs/CCAppCommon/src/ccApplicationBase.cpp"
+
+  # FindLASzip adds a nonexistent ${LASZIP_INCLUDE_DIR}/laszip include dir, which CMake rejects
+  sed -i '/\${LASZIP_INCLUDE_DIR}\/laszip[[:space:]]*$/d' \
+    "$_repo/plugins/core/IO/qLASIO/cmake/FindLASzip.cmake"
 }
 
 build() {
