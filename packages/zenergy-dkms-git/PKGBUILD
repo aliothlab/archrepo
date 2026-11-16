@@ -1,6 +1,6 @@
 _pkgname="zenergy"
 pkgname="$_pkgname-dkms-git"
-pkgver=32.58f2fda
+pkgver=33.2a40d24
 pkgrel=1
 pkgdesc="Linux kernel driver for reading RAPL registers for AMD Zen CPUs"
 url="https://github.com/boukehaarsma23/zenergy"
